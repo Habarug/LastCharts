@@ -1,6 +1,5 @@
 import os
 import urllib
-from datetime import timedelta
 
 import matplotlib.image as mpimg
 import pandas as pd
