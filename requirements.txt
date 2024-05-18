@@ -3,6 +3,7 @@ attrs==23.2.0
 cattrs==23.2.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
+click==8.1.7
 comm==0.2.2
 contourpy==1.2.1
 cycler==0.12.1
@@ -13,12 +14,14 @@ fonttools==4.51.0
 idna==3.7
 ipykernel==6.29.4
 ipython==8.24.0
+isort==5.13.2
 jedi==0.19.1
 jupyter_client==8.6.1
 jupyter_core==5.7.2
 kiwisolver==1.4.5
 matplotlib==3.9.0
 matplotlib-inline==0.1.7
+mpimg==0.0.1
 nest-asyncio==1.6.0
 numpy==1.26.4
 packaging==24.0

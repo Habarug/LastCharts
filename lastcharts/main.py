@@ -1,7 +1,9 @@
 import os
-import pandas as pd
+import urllib
 from datetime import timedelta
 
+import matplotlib.image as mpimg
+import pandas as pd
 import pyjson5
 
 from .lastfm import LastFM
@@ -9,6 +11,8 @@ from .lastfm import LastFM
 
 class LastCharts:
     """Python class to plot charts from LastFM data"""
+
+    COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "covers")
 
     def __init__(self, API_KEY, USER_AGENT):
         """Instiantiate LastCharts class
@@ -42,6 +46,27 @@ class LastCharts:
             self.df["datetime"].iloc[0],
             freq="d",
         )
+
+    def _get_cover(self, artist, album, force=0):
+        if not os.path.exists(self.COVER_dir):
+            os.mkdir(self.COVER_dir)
+
+        savePath = os.path.join(self.COVER_dir, f"{artist}_{album}.png")
+
+        if not force:  # If no Force, check local folder first
+            if os.path.exists(savePath):
+                return mpimg.imread(savePath)
+
+        # If not offline, go online
+        url = (
+            self.df[(self.df["artist"] == artist) & (self.df["album"] == album)][
+                "image"
+            ]
+            .dropna()
+            .iloc[0]
+        )
+        urllib.request.urlretrieve(url, savePath)
+        return mpimg.imread(savePath)
 
 
 def main():
