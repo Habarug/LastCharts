@@ -5,6 +5,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
 import pyjson5
+from PIL import Image
 
 from .lastfm import LastFM
 
@@ -99,16 +100,14 @@ class LastCharts:
                     ]
                     img = self._get_cover(artist, albums[idx])
                     ax.set_autoscale_on(False)
-                    if img:
+                    if img is not None:
                         plt.imshow(img, extent=extent, aspect="auto", zorder=3)
 
-            plt.xticks(rotation=45, fontsize=self.__font_size_ticks)
-            plt.yticks(fontsize=self.__font_size_ticks)
-            plt.ylabel("Scrobble count", fontsize=self.__font_size_axis_labels)
+            # plt.xticks(rotation=45, fontsize=self.__font_size_ticks)
+            # plt.yticks(fontsize=self.__font_size_ticks)
+            # plt.ylabel("Scrobble count", fontsize=self.__font_size_axis_labels)
             plt.xlim(-0.5, nArtists - 1.5)
-            plt.ylim(
-                0, self.scrData[self.scrData["artist"] == self.topArtists[0]].shape[0]
-            )
+            plt.ylim(0, self.df[self.df["artist"] == self.topArtists[0]].shape[0])
             fig.patch.set_facecolor("xkcd:white")
             plt.tight_layout()
 
@@ -130,12 +129,18 @@ class LastCharts:
             .dropna()
             .iloc[0]
         )
-        try:
+
+        if url[-4:] == ".jpg":  # jpgs must be converted to png
+            DIR_jpg = os.path.join(self.COVER_dir, "jpgs")
+            if not os.path.exists(DIR_jpg):
+                os.mkdir(DIR_jpg)
+            path = os.path.join(DIR_jpg, f"{artist}_{album}.jpg")
+            urllib.request.urlretrieve(url, path)
+            im = Image.open(path)
+            im.save(savePath)
+        else:
             urllib.request.urlretrieve(url, savePath)
-            return mpimg.imread(savePath)
-        except Exception:
-            print(f"Cover not found for {artist} {album}")
-            return None
+        return mpimg.imread(savePath)
 
 
 def main():
