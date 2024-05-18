@@ -1,4 +1,5 @@
 import os
+
 import pyjson5
 
 from .lastfm import LastFM

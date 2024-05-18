@@ -1,4 +1,6 @@
 *.ipynb
 PRIVATE.json5
 .venv
+/db
 */__pycache__
+http_cache.sqlite

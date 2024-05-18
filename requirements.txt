@@ -1,4 +1,6 @@
 asttokens==2.4.1
+attrs==23.2.0
+cattrs==23.2.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
 comm==0.2.2
@@ -36,11 +38,13 @@ python-dateutil==2.9.0.post0
 pytz==2024.1
 pyzmq==26.0.3
 requests==2.31.0
+requests-cache==1.2.0
 ruff==0.4.4
 six==1.16.0
 stack-data==0.6.3
 tornado==6.4
 traitlets==5.14.3
 tzdata==2024.1
+url-normalize==1.4.3
 urllib3==2.2.1
 wcwidth==0.2.13
