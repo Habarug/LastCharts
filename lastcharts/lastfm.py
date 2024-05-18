@@ -10,7 +10,7 @@ class LastFM:
     """Class to retrieve data from the LastFM API"""
 
     URL_base = "http://ws.audioscrobbler.com/2.0/"
-    DB_dir = os.path.join(os.path.dirname(__file__), "..", "db")
+    DB_dir = os.path.join(os.path.dirname(__file__), "..", "db", "scrobbles")
     df_cols = ["artist", "album", "track", "datetime", "timestamp", "image"]
 
     def __init__(self, API_key, USER_AGENT) -> None:
@@ -101,7 +101,6 @@ class LastFM:
             os.mkdir(self.DB_dir)
 
         return df
-        df.to_csv(os.path.join(self.DB_dir, f"{user}.csv"), index=False)
 
     def _parse_responses(self, responses: list) -> pd.DataFrame:
         dfs = []
@@ -117,7 +116,11 @@ class LastFM:
             df_r["image"] = [row["image"][-1]["#text"] for row in r]
             dfs.append(df_r)
 
-        return pd.concat(dfs)
+        df = pd.concat(dfs)
+
+        if len(df) > 0:
+            df["datetime"] = pd.to_datetime(df["datetime"], format="%d %b %Y, %H:%M")
+        return df
 
     def load_user(self, user: str = None):
         """Load a users data and return df"""
@@ -131,14 +134,16 @@ class LastFM:
         path = os.path.join(self.DB_dir, f"{user}.csv")
         if os.path.exists(path):
             df = pd.read_csv(path, header=0)
+            start = df["timestamp"].iloc[0] + 1
         else:
             df = pd.DataFrame(columns=self.df_cols)
+            start = 0
 
         print("Checking for new scrobbles:")
         # Load any potential new scrobbles, and update csv file if any are found
-        df_new = self._get_all_scrobbles(user=user, start=df["timestamp"].iloc[0] + 1)
+        df_new = self._get_all_scrobbles(user=user, start=start)
         if len(df_new) > 0:
-            df = pd.concat(df, df_new)
+            df = pd.concat([df, df_new])
             df.to_csv(os.path.join(self.DB_dir, f"{user}.csv"), index=False)
 
         print("Scrobbles loaded")

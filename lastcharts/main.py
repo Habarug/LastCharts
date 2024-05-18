@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+from datetime import timedelta
 
 import pyjson5
 
@@ -28,6 +30,18 @@ class LastCharts:
             user    : LastFM username. If None, defaults to config
         """
         self.df = self.lastfm.load_user(user)
+
+        # Make some Series available for convenience
+        self.topArtists = self.df["artist"].value_counts()[:].index.tolist()
+        self.topAlbums = self.df["album"].value_counts()[:].index.tolist()
+        self.topTracks = self.df["track"].value_counts()[:].index.tolist()
+
+        # Make a list of all the dates in the range, including dates with no scrobbles
+        self.dates = pd.date_range(
+            self.df["datetime"].iloc[-1],
+            self.df["datetime"].iloc[0],
+            freq="d",
+        )
 
 
 def main():
