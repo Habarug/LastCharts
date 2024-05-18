@@ -130,11 +130,12 @@ class LastCharts:
             .iloc[0]
         )
 
-        if url[-4:] == ".jpg":  # jpgs must be converted to png
+        fformat = url.split(".")[-1]
+        if fformat != "png":  # jpgs must be converted to png
             DIR_jpg = os.path.join(self.COVER_dir, "jpgs")
             if not os.path.exists(DIR_jpg):
                 os.mkdir(DIR_jpg)
-            path = os.path.join(DIR_jpg, f"{artist}_{album}.jpg")
+            path = os.path.join(DIR_jpg, f"{artist}_{album}.{fformat}")
             urllib.request.urlretrieve(url, path)
             im = Image.open(path)
             im.save(savePath)
