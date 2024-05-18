@@ -1,0 +1,4 @@
+*.ipynb
+PRIVATE.json5
+.venv
+*/__pycache__
