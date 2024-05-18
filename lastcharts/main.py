@@ -18,6 +18,17 @@ class LastCharts:
         # Instantiate LastFM class
         self.lastfm = LastFM(API_KEY, USER_AGENT)
 
+        # Set self.df to None before
+        self.df = None
+
+    def load_scobbles(self, user: str = None):
+        """Loads all scrobbes for user to self.df
+
+        Args:
+            user    : LastFM username. If None, defaults to config
+        """
+        self.df = self.lastfm.load_user(user)
+
 
 def main():
     with open(

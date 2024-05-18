@@ -120,7 +120,7 @@ class LastFM:
         return pd.concat(dfs)
 
     def load_user(self, user: str = None):
-        """Load a users data to self.df"""
+        """Load a users data and return df"""
 
         if user is None:
             user = self.headers["user-agent"]
@@ -143,4 +143,4 @@ class LastFM:
 
         print("Scrobbles loaded")
 
-        self.df = df
+        return df
