@@ -11,6 +11,7 @@ class LastFM:
 
     URL_base = "http://ws.audioscrobbler.com/2.0/"
     DB_dir = os.path.join(os.path.dirname(__file__), "..", "db")
+    df_cols = ["artist", "album", "track", "datetime", "timestamp", "image"]
 
     def __init__(self, API_key, USER_AGENT) -> None:
         self.headers = {"user-agent": USER_AGENT}
@@ -19,7 +20,7 @@ class LastFM:
 
         requests_cache.install_cache()  # Make local cache to limit reapeated API calls
 
-    def lastfm_get(self, payload):
+    def _lastfm_get(self, payload):
         payload = self.payload_base | payload
 
         try:
@@ -28,7 +29,7 @@ class LastFM:
         except Exception as e:
             raise e
 
-    def get_recent_tracks(
+    def _get_recent_tracks(
         self, user: str = None, page: int = 1, limit: int = 200, start: int = 0
     ):
         """Get recent tracks for user
@@ -43,7 +44,7 @@ class LastFM:
         if user is None:
             user = self.headers["user-agent"]
 
-        return self.lastfm_get(
+        return self._lastfm_get(
             {
                 "method": "user.getRecentTracks",
                 "user": user,
@@ -53,7 +54,7 @@ class LastFM:
             }
         )
 
-    def get_all_scrobbles(self, user: str = None, start: int = 0, sleep: float = 0.5):
+    def _get_all_scrobbles(self, user: str = None, start: int = 0, sleep: float = 0.5):
         """Get all scrobbles, save to csv
 
         Args:
@@ -70,9 +71,10 @@ class LastFM:
         total_pages = 9999  # Placeholder until first loop
 
         while page <= total_pages:
-            print(f"Requesting page {page}/{total_pages}")
+            if page > 1:
+                print(f"Requesting page {page}/{total_pages}")
 
-            response = self.get_recent_tracks(
+            response = self._get_recent_tracks(
                 user=user, page=page, limit=200, start=start
             )
 
@@ -93,21 +95,19 @@ class LastFM:
 
             page += 1
 
-        df = self.parse_responses(responses)
+        df = self._parse_responses(responses)
 
         if not os.path.exists(self.DB_dir):
             os.mkdir(self.DB_dir)
 
+        return df
         df.to_csv(os.path.join(self.DB_dir, f"{user}.csv"), index=False)
 
-        return responses
-
-    def parse_responses(self, responses: list) -> pd.DataFrame:
-        cols = ["artist", "album", "track", "datetime", "timestamp", "image"]
+    def _parse_responses(self, responses: list) -> pd.DataFrame:
         dfs = []
 
         for response in responses:
-            df_r = pd.DataFrame(columns=cols)
+            df_r = pd.DataFrame(columns=self.df_cols)
             r = response.json()["recenttracks"]["track"]
             df_r["artist"] = [row["artist"]["#text"] for row in r]
             df_r["album"] = [row["album"]["#text"] for row in r]
@@ -118,3 +118,29 @@ class LastFM:
             dfs.append(df_r)
 
         return pd.concat(dfs)
+
+    def load_user(self, user: str = None):
+        """Load a users data to self.df"""
+
+        if user is None:
+            user = self.headers["user-agent"]
+
+        print(f"Loading scrobbles for user: {user}")
+
+        print("Checking local database:")
+        path = os.path.join(self.DB_dir, f"{user}.csv")
+        if os.path.exists(path):
+            df = pd.read_csv(path, header=0)
+        else:
+            df = pd.DataFrame(columns=self.df_cols)
+
+        print("Checking for new scrobbles:")
+        # Load any potential new scrobbles, and update csv file if any are found
+        df_new = self._get_all_scrobbles(user=user, start=df["timestamp"].iloc[0] + 1)
+        if len(df_new) > 0:
+            df = pd.concat(df, df_new)
+            df.to_csv(os.path.join(self.DB_dir, f"{user}.csv"), index=False)
+
+        print("Scrobbles loaded")
+
+        self.df = df
