@@ -11,7 +11,7 @@ class LastFM:
 
     URL_base = "http://ws.audioscrobbler.com/2.0/"
     DB_dir = os.path.join(os.path.dirname(__file__), "..", "db", "scrobbles")
-    df_cols = ["artist", "album", "track", "datetime", "timestamp", "image"]
+    df_cols = ["artist", "album", "track", "datetime", "image"]
 
     def __init__(self, API_key, USER_AGENT) -> None:
         self.headers = {"user-agent": USER_AGENT}
@@ -115,23 +115,17 @@ class LastFM:
             df_r["datetime"] = [
                 row["date"]["#text"] if "date" in row else None for row in r
             ]
-            df_r["timestamp"] = [
-                int(row["date"]["uts"]) if "date" in row else None for row in r
-            ]
             df_r["image"] = [row["image"][-1]["#text"] for row in r]
             dfs.append(df_r)
 
         df = pd.concat(dfs)
 
         if len(df) > 0:
-            if (
-                df["timestamp"].isna().any()
-            ):  # Set datetime and timestamp for currently playing tracks
-                df.loc[0, "datetime"] = df["datetime"].iloc[1] + timedelta(minutes=1)
-                df.loc[0, "timestamp"] = df["timestamp"].iloc[1] + 60
-            df["datetime"] = pd.to_datetime(df["datetime"], format="%d %b %Y, %H:%M")
-
-        df["timestamp"] = df["timestamp"].astype(int)
+            df["datetime"] = df["datetime"].apply(
+                pd.to_datetime, format="%d %b %Y, %H:%M", utc=True
+            )
+            if df["datetime"].isna().any():  # Set datetime for currently playing tracks
+                df.loc[0, "datetime"] = df["datetime"].iloc[1] + timedelta(minutes=3)
 
         return df
 
@@ -148,7 +142,7 @@ class LastFM:
         if os.path.exists(path):
             df = pd.read_csv(path, header=0)
             start = (
-                df["timestamp"].iloc[0] + 2
+                df["datetime"].iloc[0].timestamp() + 60
             )  # +1 was not working, maybe it needs even number
             print("Local database found")
         else:
