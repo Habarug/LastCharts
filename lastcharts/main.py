@@ -151,23 +151,27 @@ class LastCharts:
         filename = f"{self.user}_BCR_{column}.mp4"
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(self.df, nArtists=100)
+        df_bcr = self._format_df_for_bcr(self.df, nArtists=400)
 
-        fig, ax = plt.subplots()
         bcr.bar_chart_race(
             df=df_bcr,
             filename=os.path.join(self.OUTPUT_dir, filename),
-            n_bars=5,
-            steps_per_period=1,
-            period_length=10,
+            n_bars=15,
+            steps_per_period=4,
+            period_length=20,
             filter_column_colors=True,
+            cmap="Set3",
+            period_fmt="%Y-%m-%d",
+            title=f"{self.user} - Top {column}s",
         )
 
-    def _format_df_for_bcr(self, df: pd.DataFrame, nArtists: int):
+    def _format_df_for_bcr(self, df: pd.DataFrame, nArtists: int = None):
         """Returns a df formatted for bar chart race"""
 
         df_bcr = pd.DataFrame(columns=self.topArtists[:nArtists], index=self.dates)
 
+        if nArtists is None or nArtists > len(self.topArtists):
+            nArtists = len(self.topArtists)
         for artist in self.topArtists[:nArtists]:
             filterArtist = self.df[self.df["artist"] == artist]
             cumSum = []
