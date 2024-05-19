@@ -15,6 +15,13 @@ class LastCharts:
 
     COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "covers")
 
+    # Plotting parameters
+    _FONT_SIZE_AXIS_LABELS = 20
+    _FONT_SIZE_TITLE = 26
+    _FONT_SIZE_TICKS = 14
+    _FONT_SIZE_LEGEND = 18
+    _FIG_SIZE = (15, 7)
+
     def __init__(self, API_KEY, USER_AGENT):
         """Instiantiate LastCharts class
 
@@ -48,22 +55,29 @@ class LastCharts:
             freq="d",
         )
 
-    def plot_stacked_bar_plot(self, nArtists=15, artLimitCoefficient=0.05):
-        sizeX = 20
-        sizeY = 8
-        plt.rcParams["figure.figsize"] = (sizeX, sizeY)
-        width = 0.9
-        cover = 0.85
+    def plot_stacked_bar_plot(self, nArtists=15, artLimitCoefficient=0.02):
+        """Plot stacked bar plot with album distribution of the users top artists
 
+        Args:
+            nArtists            : Number of artists to plot
+            artLimitCoefficient : Minimum number of scrobbles to include covert art, as fraction of highest bar
+        """
+
+        plt.rcParams["figure.figsize"] = self._FIG_SIZE
+        width = 0.9  # width of bars
+        cover = 0.85  # max with of covers. Should not be larger than width above
+
+        # Calculate how many plays an album must have to plot cover art
         artLimit = (
             artLimitCoefficient
             * self.df[self.df["artist"] == self.topArtists[0]].shape[0]
         )
+        # Scale factor to set correct size of covers
         scale = (
             self.df[self.df["artist"] == self.topArtists[0]].shape[0]
             / nArtists
-            * sizeX
-            / sizeY
+            * self._FIG_SIZE[0]
+            / self._FIG_SIZE[1]
         )
 
         fig, ax = plt.subplots()
@@ -78,10 +92,11 @@ class LastCharts:
                 albumScrobbles = filterArtist[filterArtist["album"] == album]
                 albumsCount.append(albumScrobbles.shape[0])
 
+            # Invert order so most played albums are plotted first, i.e. at the bottom of stack
             albums = [y for x, y in sorted(zip(albumsCount, albums), reverse=True)]
             albumsCount = [x for x, y in sorted(zip(albumsCount, albums), reverse=True)]
 
-            bottom = 0
+            bottom = 0  # Start point for bar. 0 For first
             plt.gca().set_prop_cycle(None)
 
             for idx, count in enumerate(albumsCount):
@@ -91,6 +106,7 @@ class LastCharts:
                 (x, y) = patch[0].get_xy()
 
                 if count >= artLimit:
+                    # Size is either max or the height of the bar
                     size = min(count * 0.95, cover * scale)
                     extent = [
                         x + width / 2 - size / (2 * scale),
@@ -103,9 +119,12 @@ class LastCharts:
                     if img is not None:
                         plt.imshow(img, extent=extent, aspect="auto", zorder=3)
 
-            # plt.xticks(rotation=45, fontsize=self.__font_size_ticks)
-            # plt.yticks(fontsize=self.__font_size_ticks)
-            # plt.ylabel("Scrobble count", fontsize=self.__font_size_axis_labels)
+                bottom += count  # Set bottom of next bar to top of this one
+
+            # Adjust plot formatting
+            plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
+            plt.yticks(fontsize=self._FONT_SIZE_TICKS)
+            plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
             plt.xlim(-0.5, nArtists - 1.5)
             plt.ylim(0, self.df[self.df["artist"] == self.topArtists[0]].shape[0])
             fig.patch.set_facecolor("xkcd:white")
