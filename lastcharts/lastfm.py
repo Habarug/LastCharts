@@ -141,7 +141,10 @@ class LastFM:
         path = os.path.join(self.DB_dir, f"{user}.csv")
         if os.path.exists(path):
             df = pd.read_csv(path, header=0)
-            start = (
+            df["datetime"] = df["datetime"].apply(
+                pd.to_datetime, format="ISO8601", utc=True
+            )
+            start = int(
                 df["datetime"].iloc[0].timestamp() + 60
             )  # +1 was not working, maybe it needs even number
             print("Local database found")
