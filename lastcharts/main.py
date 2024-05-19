@@ -1,6 +1,7 @@
 import os
 import urllib
 
+import bar_chart_race as bcr
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -15,6 +16,7 @@ class LastCharts:
     """Python class to plot charts from LastFM data"""
 
     COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "covers")
+    OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "output")
 
     # Plotting parameters
     _FONT_SIZE_AXIS_LABELS = 20
@@ -42,7 +44,10 @@ class LastCharts:
         Args:
             user    : LastFM username. If None, defaults to config
         """
+        if user is None:
+            user = self.lastfm.headers["user-agent"]
         self.df = self.lastfm.load_user(user)
+        self.user = user
 
         # Make some Series available for convenience
         self.topArtists = self.df["artist"].value_counts()[:].index.tolist()
@@ -130,6 +135,40 @@ class LastCharts:
             plt.ylim(0, self.df[self.df["artist"] == self.topArtists[0]].shape[0])
             fig.patch.set_facecolor("xkcd:white")
             plt.tight_layout()
+
+    def bar_chart_race(self, column: str = "artist"):
+        """Create a bar chart race for the given column
+
+        Args:
+            column  : Column to use ("artist", "album" or "track")
+        """
+        if column not in ["artist", "album", "track"]:
+            raise ValueError(f"Requested column {column} not artist, album or track")
+
+        if not os.path.exists(self.OUTPUT_dir):
+            os.mkdir(self.OUTPUT_dir)
+
+        filename = f"{self.user}_BCR_{column}.gif"
+
+        # Make a new df with correct formatting for bcr:
+        df_bcr = self._format_df_for_bcr(self.df, nArtists=10)
+
+        fig, ax = plt.subplots()
+        bcr.bar_chart_race(df=df_bcr, filename=os.path.join(self.OUTPUT_dir, filename))
+
+    def _format_df_for_bcr(self, df: pd.DataFrame, nArtists: int):
+        """Returns a df formatted for bar chart race"""
+
+        df_bcr = pd.DataFrame(columns=self.topArtists[:nArtists], index=self.dates)
+
+        for artist in self.topArtists[:nArtists]:
+            filterArtist = self.df[self.df["artist"] == artist]
+            cumSum = []
+            for date in self.dates:
+                cumSum.append(sum(filterArtist["datetime"] <= date))
+            df_bcr[artist] = cumSum
+
+        return df_bcr
 
     def _get_cover(self, artist, album, force=0):
         if not os.path.exists(self.COVER_dir):
