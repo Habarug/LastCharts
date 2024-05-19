@@ -8,6 +8,7 @@ import pyjson5
 from PIL import Image
 
 from .lastfm import LastFM
+from .utilities import valid_filename
 
 
 class LastCharts:
@@ -134,7 +135,10 @@ class LastCharts:
         if not os.path.exists(self.COVER_dir):
             os.mkdir(self.COVER_dir)
 
-        savePath = os.path.join(self.COVER_dir, f"{artist}_{album}.png")
+        filename_base = valid_filename(
+            f"{artist}_{album}"
+        )  # Removes any illegal characters
+        savePath = os.path.join(self.COVER_dir, f"{filename_base}.png")
 
         if not force:  # If no Force, check local folder first
             if os.path.exists(savePath):
@@ -154,7 +158,7 @@ class LastCharts:
             DIR_jpg = os.path.join(self.COVER_dir, "jpgs")
             if not os.path.exists(DIR_jpg):
                 os.mkdir(DIR_jpg)
-            path = os.path.join(DIR_jpg, f"{artist}_{album}.{fformat}")
+            path = os.path.join(DIR_jpg, f"{filename_base}.{fformat}")
             urllib.request.urlretrieve(url, path)
             im = Image.open(path)
             im.save(savePath)
