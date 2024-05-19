@@ -124,12 +124,12 @@ class LastFM:
         df = pd.concat(dfs)
 
         if len(df) > 0:
-            df["datetime"] = pd.to_datetime(df["datetime"], format="%d %b %Y, %H:%M")
             if (
                 df["timestamp"].isna().any()
             ):  # Set datetime and timestamp for currently playing tracks
                 df.loc[0, "datetime"] = df["datetime"].iloc[1] + timedelta(minutes=1)
                 df.loc[0, "timestamp"] = df["timestamp"].iloc[1] + 60
+            df["datetime"] = pd.to_datetime(df["datetime"], format="%d %b %Y, %H:%M")
 
         df["timestamp"] = df["timestamp"].astype(int)
 
