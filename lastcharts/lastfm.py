@@ -1,9 +1,9 @@
 import os
 import time
+from datetime import timedelta
 
 import pandas as pd
 import requests
-import requests_cache
 
 
 class LastFM:
@@ -17,8 +17,6 @@ class LastFM:
         self.headers = {"user-agent": USER_AGENT}
 
         self.payload_base = {"api_key": API_key, "format": "json"}
-
-        requests_cache.install_cache()  # Make local cache to limit reapeated API calls
 
     def _lastfm_get(self, payload):
         payload = self.payload_base | payload
@@ -86,6 +84,8 @@ class LastFM:
                 total_pages = int(
                     response.json()["recenttracks"]["@attr"]["totalPages"]
                 )
+                if total_pages == 0:  # Return empty df if no new tracks
+                    return pd.DataFrame(columns=self.df_cols)
 
             responses.append(response)
 
@@ -111,8 +111,13 @@ class LastFM:
             df_r["artist"] = [row["artist"]["#text"] for row in r]
             df_r["album"] = [row["album"]["#text"] for row in r]
             df_r["track"] = [row["name"] for row in r]
-            df_r["datetime"] = [row["date"]["#text"] for row in r]
-            df_r["timestamp"] = [row["date"]["uts"] for row in r]
+            # "date" is not in response for currently playing tracks. Set to 1 min after previous afterwards
+            df_r["datetime"] = [
+                row["date"]["#text"] if "date" in row else None for row in r
+            ]
+            df_r["timestamp"] = [
+                int(row["date"]["uts"]) if "date" in row else None for row in r
+            ]
             df_r["image"] = [row["image"][-1]["#text"] for row in r]
             dfs.append(df_r)
 
@@ -120,6 +125,14 @@ class LastFM:
 
         if len(df) > 0:
             df["datetime"] = pd.to_datetime(df["datetime"], format="%d %b %Y, %H:%M")
+            if (
+                df["timestamp"].isna().any()
+            ):  # Set datetime and timestamp for currently playing tracks
+                df.loc[0, "datetime"] = df["datetime"].iloc[1] + timedelta(minutes=1)
+                df.loc[0, "timestamp"] = df["timestamp"].iloc[1] + 60
+
+        df["timestamp"] = df["timestamp"].astype(int)
+
         return df
 
     def load_user(self, user: str = None):
@@ -134,16 +147,23 @@ class LastFM:
         path = os.path.join(self.DB_dir, f"{user}.csv")
         if os.path.exists(path):
             df = pd.read_csv(path, header=0)
-            start = df["timestamp"].iloc[0] + 1
+            start = (
+                df["timestamp"].iloc[0] + 2
+            )  # +1 was not working, maybe it needs even number
+            print("Local database found")
         else:
-            df = pd.DataFrame(columns=self.df_cols)
+            df = None
             start = 0
 
         print("Checking for new scrobbles:")
         # Load any potential new scrobbles, and update csv file if any are found
         df_new = self._get_all_scrobbles(user=user, start=start)
+        print(f"{len(df_new)} new scrobbles found")
         if len(df_new) > 0:
-            df = pd.concat([df, df_new])
+            if df is not None:
+                df = pd.concat([df_new, df])
+            else:
+                df = df_new
             df.to_csv(os.path.join(self.DB_dir, f"{user}.csv"), index=False)
 
         print("Scrobbles loaded")
