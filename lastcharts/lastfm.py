@@ -127,6 +127,11 @@ class LastFM:
             if df["datetime"].isna().any():  # Set datetime for currently playing tracks
                 df.loc[0, "datetime"] = df["datetime"].iloc[1] + timedelta(minutes=3)
 
+            # Dollar signs $ cause trouble with matplotlib, replace with s
+            df["artist"] = df["artist"].str.replace("$", "s")
+            df["album"] = df["album"].str.replace("$", "s")
+            df["track"] = df["track"].str.replace("$", "s")
+
         return df
 
     def load_user(self, user: str = None):
