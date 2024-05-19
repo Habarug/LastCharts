@@ -136,6 +136,13 @@ class LastCharts:
             fig.patch.set_facecolor("xkcd:white")
             plt.tight_layout()
 
+        if not os.path.exists(self.OUTPUT_dir):
+            os.mkdir(self.OUTPUT_dir)
+        plt.savefig(
+            os.path.join(self.OUTPUT_dir, f"{self.user}_topArtists_stackedbars.jpg"),
+            dpi=600,
+        )
+
     def bar_chart_race(self, column: str = "artist"):
         """Create a bar chart race for the given column
 
