@@ -1,6 +1,7 @@
 *.ipynb
-PRIVATE.json5
+/config
 .venv
 /db
 */__pycache__
 http_cache.sqlite
+/output

@@ -148,13 +148,20 @@ class LastCharts:
         if not os.path.exists(self.OUTPUT_dir):
             os.mkdir(self.OUTPUT_dir)
 
-        filename = f"{self.user}_BCR_{column}.gif"
+        filename = f"{self.user}_BCR_{column}.mp4"
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(self.df, nArtists=10)
+        df_bcr = self._format_df_for_bcr(self.df, nArtists=100)
 
         fig, ax = plt.subplots()
-        bcr.bar_chart_race(df=df_bcr, filename=os.path.join(self.OUTPUT_dir, filename))
+        bcr.bar_chart_race(
+            df=df_bcr,
+            filename=os.path.join(self.OUTPUT_dir, filename),
+            n_bars=5,
+            steps_per_period=1,
+            period_length=10,
+            filter_column_colors=True,
+        )
 
     def _format_df_for_bcr(self, df: pd.DataFrame, nArtists: int):
         """Returns a df formatted for bar chart race"""
@@ -208,7 +215,7 @@ class LastCharts:
 
 def main():
     with open(
-        os.path.join(os.path.dirname(__file__), "..", "config", "PRIVATE.json5")
+        os.path.join(os.path.dirname(__file__), "..", "config", "config.json5")
     ) as f:
         priv = pyjson5.load(f)
 
