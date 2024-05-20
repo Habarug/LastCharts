@@ -4,9 +4,11 @@ Python package to plot charts from a user's LastFM data. LastCharts downloads a 
 
 ### Implemented chars:
 - Bar chart race:
-![bcr](./figures/Example_BCR_artists.mp4)
+
+![bcr](./figures/Example_BCR_artist.gif)
 
 - Stacked bar plot of top artists with album distribution:
+
 ![bcr](./figures/Example_topArtists_stackedbars.jpg)
 
 ## Pre-requisites
