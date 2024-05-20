@@ -177,7 +177,9 @@ class LastCharts:
 
         # Make a new df with correct formatting for bcr:
         if skip_empty_dates:
-            dates = self.df["datetime"].dt.date.unique()
+            dates = pd.to_datetime(self.df["datetime"].dt.date.unique(), utc=True)[
+                ::-1
+            ]  # Reverse order
         else:
             dates = self.dates
         df_bcr = self._format_df_for_bcr(self.df, column, dates, n=400)
