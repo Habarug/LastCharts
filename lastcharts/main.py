@@ -149,13 +149,22 @@ class LastCharts:
         )
         return fig, ax
 
-    def bar_chart_race(self, column: str = "artist", format="mp4", **bcr_options):
+    def bar_chart_race(
+        self,
+        column: str = "artist",
+        length: int = 30,
+        skip_empty_dates: bool = False,
+        format: str = "mp4",
+        **bcr_options,
+    ):
         """Create a bar chart race for the given column
 
         Args:
             column          : Column to use ("artist", "album" or "track")
+            length          : Length of video in seconds
+            skip_empty_dates: Set to true to skip empty dates
             format          : Data format to save to [mp4, m4v, mov, gif...]
-            **bcr_options   : Custom arguments for bar_chart_race as dict
+            **bcr_options   : Custom arguments for bar_chart_race as dict. Some of these will overwrite length
         """
         # Check inputs
         if column not in ["artist", "album", "track"]:
@@ -167,14 +176,20 @@ class LastCharts:
         filename = f"{self.user}_BCR_{column}.{format}"
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(self.df, nArtists=400)
+        if skip_empty_dates:
+            dates = self.df["datetime"].dt.date.unique()
+        else:
+            dates = self.dates
+        df_bcr = self._format_df_for_bcr(self.df, column, dates, n=400)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
             "n_bars": 15,
             "steps_per_period": 4,
-            "period_length": 20,
+            "period_length": length
+            / len(dates)
+            * 1000,  # period length is in miliseconds
             "filter_column_colors": True,
             "cmap": "Set3",
             "period_fmt": "%Y-%m-%d",
@@ -184,19 +199,29 @@ class LastCharts:
 
         bcr.bar_chart_race(**bcr_arguments)
 
-    def _format_df_for_bcr(self, df: pd.DataFrame, nArtists: int = None):
-        """Returns a df formatted for bar chart race"""
+    def _format_df_for_bcr(
+        self, df: pd.DataFrame, column: str, dates: list, n: int = None
+    ):
+        """Returns a df formatted for bar chart race
 
-        df_bcr = pd.DataFrame(columns=self.topArtists[:nArtists], index=self.dates)
+        Args:
+            df      : Dataframe with scrobbles with at least the column specified below
+            column  : Column to count (artist, album, track)
+            dates   : List of dates to use
+            n       : Number of output columns. Setting it low may mean cause some inaccuracies early in the bcr.
+        """
 
-        if nArtists is None or nArtists > len(self.topArtists):
-            nArtists = len(self.topArtists)
-        for artist in self.topArtists[:nArtists]:
-            filterArtist = self.df[self.df["artist"] == artist]
+        topList = self.df[column].value_counts()[:].index.tolist()
+        df_bcr = pd.DataFrame(columns=topList[:n], index=dates)
+
+        if n is None or n > len(topList):
+            n = len(topList)
+        for entry in topList[:n]:
+            df_filtered = df[df[column] == entry]
             cumSum = []
-            for date in self.dates:
-                cumSum.append(sum(filterArtist["datetime"] <= date))
-            df_bcr[artist] = cumSum
+            for date in dates:
+                cumSum.append(sum(df_filtered["datetime"] <= date))
+            df_bcr[entry] = cumSum
 
         return df_bcr
 
