@@ -4,6 +4,7 @@ import urllib
 import bar_chart_race as bcr
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pyjson5
 from cycler import cycler
@@ -157,7 +158,7 @@ class LastCharts:
     def bar_chart_race(
         self,
         column: str = "artist",
-        length: int = 30,
+        length: int = 10,
         skip_empty_dates: bool = False,
         format: str = "mp4",
         **bcr_options,
@@ -180,20 +181,36 @@ class LastCharts:
 
         filename = f"{self.user}_BCR_{column}.{format}"
 
-        # Make a new df with correct formatting for bcr:
+        # Potentially skip dates with no scrobbles
         if skip_empty_dates:
             dates = pd.to_datetime(self.df["datetime"].dt.date.unique(), utc=True)[
                 ::-1
             ]  # Reverse order
         else:
             dates = self.dates
+
+        # Filter the dates, running with thousands of periods is extremely slow and memory instensive
+        # Try 1 or 2 per second maybe?
+        # Make sure to get last date included, first not that important
+        # Create it backwards and reverse it afterwards, makes sure we include last date
+        f_periods = 5  # Number of periods per second
+        if len(dates) > (length * f_periods):
+            dates_tmp = []
+            step = round(len(dates) / (length * f_periods))  # index step
+            for idx in range(length * f_periods):
+                dates_tmp.append(dates[-1 - idx * step])
+
+            dates_tmp.reverse()
+            dates = dates_tmp
+
+        # Make a new df with correct formatting for bcr:
         df_bcr = self._format_df_for_bcr(self.df, column, dates, n=200)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
             "n_bars": 10,
-            "steps_per_period": 2,
+            "steps_per_period": 4,
             "period_length": int(
                 length / len(dates) * 1000
             ),  # period length is in miliseconds
