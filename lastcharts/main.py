@@ -242,7 +242,10 @@ class LastCharts:
 
         topList = self.df[column].value_counts()[:].index.tolist()
         df_bcr = pd.DataFrame(
-            index=dates, columns=[entry[0:30] for entry in topList[:n]]
+            index=dates,
+            columns=[
+                entry[0:18] for entry in topList[:n]
+            ],  # Set max length to 18 for now to avoid label cutoff
         )
 
         if n is None or n > len(topList):
@@ -252,7 +255,7 @@ class LastCharts:
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
-            df_bcr[entry[0:30]] = cumSum
+            df_bcr[entry[0:18]] = cumSum
 
         return df_bcr
 
