@@ -19,7 +19,7 @@ class LastCharts:
     OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "output")
 
     # Plotting parameters
-    _FONT_SIZE_AXIS_LABELS = 20
+    _FONT_SIZE_AXIS_LABELS = 16
     _FONT_SIZE_TITLE = 26
     _FONT_SIZE_TICKS = 14
     _FONT_SIZE_LEGEND = 18
