@@ -187,16 +187,16 @@ class LastCharts:
             ]  # Reverse order
         else:
             dates = self.dates
-        df_bcr = self._format_df_for_bcr(self.df, column, dates, n=400)
+        df_bcr = self._format_df_for_bcr(self.df, column, dates, n=200)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
-            "n_bars": 15,
+            "n_bars": 10,
             "steps_per_period": 2,
-            "period_length": length
-            / len(dates)
-            * 1000,  # period length is in miliseconds
+            "period_length": int(
+                length / len(dates) * 1000
+            ),  # period length is in miliseconds
             "filter_column_colors": True,
             "cmap": self._CMAP,
             "period_fmt": "%Y-%m-%d",
