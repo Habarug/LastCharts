@@ -8,8 +8,8 @@ import pandas as pd
 import pyjson5
 from PIL import Image
 
+from . import utils
 from .lastfm import LastFM
-from .utilities import valid_filename
 
 
 class LastCharts:
@@ -31,6 +31,11 @@ class LastCharts:
         Args:
             API_key : LastFM API key (personal)
         """
+        # Check inputs
+        if not utils.check_API_key(API_KEY):
+            raise ValueError("Provided API_KEY not valid")
+        if not utils.check_username(USER_AGENT):
+            raise ValueError("Provided USER_AGENT not valid")
 
         # Instantiate LastFM class
         self.lastfm = LastFM(API_KEY, USER_AGENT)
@@ -192,7 +197,7 @@ class LastCharts:
         if not os.path.exists(self.COVER_dir):
             os.mkdir(self.COVER_dir)
 
-        filename_base = valid_filename(
+        filename_base = utils.valid_filename(
             f"{artist}_{album}"
         )  # Removes any illegal characters
         savePath = os.path.join(self.COVER_dir, f"{filename_base}.png")
