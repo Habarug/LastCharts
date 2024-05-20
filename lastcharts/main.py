@@ -149,20 +149,22 @@ class LastCharts:
         )
         return fig, ax
 
-    def bar_chart_race(self, column: str = "artist", **bcr_options):
+    def bar_chart_race(self, column: str = "artist", format="mp4", **bcr_options):
         """Create a bar chart race for the given column
 
         Args:
             column          : Column to use ("artist", "album" or "track")
+            format          : Data format to save to [mp4, m4v, mov, gif...]
             **bcr_options   : Custom arguments for bar_chart_race as dict
         """
+        # Check inputs
         if column not in ["artist", "album", "track"]:
             raise ValueError(f"Requested column {column} not artist, album or track")
 
         if not os.path.exists(self.OUTPUT_dir):
             os.mkdir(self.OUTPUT_dir)
 
-        filename = f"{self.user}_BCR_{column}.mp4"
+        filename = f"{self.user}_BCR_{column}.{format}"
 
         # Make a new df with correct formatting for bcr:
         df_bcr = self._format_df_for_bcr(self.df, nArtists=400)
