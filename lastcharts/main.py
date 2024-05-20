@@ -6,6 +6,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
 import pyjson5
+from cycler import cycler
 from PIL import Image
 
 from . import utils
@@ -25,6 +26,7 @@ class LastCharts:
     _FONT_SIZE_LEGEND = 18
     _FIG_SIZE = (15, 7)
     _FONT = "Comfortaa"
+    _CMAP = "Set2"
 
     def __init__(self, API_KEY, USER_AGENT):
         """Instiantiate LastCharts class
@@ -77,6 +79,7 @@ class LastCharts:
 
         plt.rcParams["figure.figsize"] = self._FIG_SIZE
         plt.rcParams["font.family"] = self._FONT
+        plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
         width = 0.9  # width of bars
         cover = 0.85  # max with of covers. Should not be larger than width above
 
@@ -149,7 +152,7 @@ class LastCharts:
             os.path.join(self.OUTPUT_dir, f"{self.user}_topArtists_stackedbars.jpg"),
             dpi=600,
         )
-        return fig, ax
+        return fig
 
     def bar_chart_race(
         self,
@@ -195,7 +198,7 @@ class LastCharts:
             / len(dates)
             * 1000,  # period length is in miliseconds
             "filter_column_colors": True,
-            "cmap": "Set3",
+            "cmap": self._CMAP,
             "period_fmt": "%Y-%m-%d",
             "title": f"{self.user} - Top {column}s",
             "shared_fontdict": {"family": self._FONT, "weight": "bold"},
