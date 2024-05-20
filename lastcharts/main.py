@@ -1,10 +1,10 @@
+import math
 import os
 import urllib
 
 import bar_chart_race as bcr
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import pyjson5
 from cycler import cycler
@@ -159,8 +159,9 @@ class LastCharts:
         self,
         column: str = "artist",
         length: int = 10,
+        f_periods: int = 20,
+        format: str = "gif",
         skip_empty_dates: bool = False,
-        format: str = "mp4",
         **bcr_options,
     ):
         """Create a bar chart race for the given column
@@ -168,9 +169,12 @@ class LastCharts:
         Args:
             column          : Column to use ("artist", "album" or "track")
             length          : Length of video in seconds
+            f_periods       : Number of dates to plot per second. Is used to filter dates and improve performance
+            format          : Data format to save to [mp4, gif, ...]
             skip_empty_dates: Set to true to skip empty dates
-            format          : Data format to save to [mp4, m4v, mov, gif...]
-            **bcr_options   : Custom arguments for bar_chart_race as dict. Some of these will overwrite length
+
+            **bcr_options   : Custom arguments for bar_chart_race as dict. Some of these will overwrite length. Notable:
+                steps_per_period : Steps to go from one period to the next. Higher = smoother, but increases time and memory use. Default = 2
         """
         # Check inputs
         if column not in ["artist", "album", "track"]:
@@ -193,10 +197,9 @@ class LastCharts:
         # Try 1 or 2 per second maybe?
         # Make sure to get last date included, first not that important
         # Create it backwards and reverse it afterwards, makes sure we include last date
-        f_periods = 5  # Number of periods per second
         if len(dates) > (length * f_periods):
             dates_tmp = []
-            step = round(len(dates) / (length * f_periods))  # index step
+            step = math.floor(len(dates) / (length * f_periods))  # index step
             for idx in range(length * f_periods):
                 dates_tmp.append(dates[-1 - idx * step])
 
@@ -210,15 +213,16 @@ class LastCharts:
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
             "n_bars": 10,
-            "steps_per_period": 4,
+            "steps_per_period": 2,
             "period_length": int(
                 length / len(dates) * 1000
             ),  # period length is in miliseconds
             "filter_column_colors": True,
-            "cmap": self._CMAP,
-            "period_fmt": "%Y-%m-%d",
+            "colors": self._CMAP,
+            "period_template": "%Y-%m-%d",
             "title": f"{self.user} - Top {column}s",
             "shared_fontdict": {"family": self._FONT, "weight": "bold"},
+            "fig_kwargs": {"dpi": 100},
         }
         bcr_arguments.update(**bcr_options)  # Add or replace defaults with user options
 
