@@ -132,14 +132,14 @@ class LastCharts:
 
                 bottom += count  # Set bottom of next bar to top of this one
 
-            # Adjust plot formatting
-            plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
-            plt.yticks(fontsize=self._FONT_SIZE_TICKS)
-            plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
-            plt.xlim(-0.5, nArtists - 1.5)
-            plt.ylim(0, self.df[self.df["artist"] == self.topArtists[0]].shape[0])
-            fig.patch.set_facecolor("xkcd:white")
-            plt.tight_layout()
+        # Adjust plot formatting
+        plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
+        plt.yticks(fontsize=self._FONT_SIZE_TICKS)
+        plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
+        plt.xlim(-0.5, nArtists - 1.5)
+        plt.ylim(0, self.df[self.df["artist"] == self.topArtists[0]].shape[0])
+        fig.patch.set_facecolor("xkcd:white")
+        plt.tight_layout()
 
         if not os.path.exists(self.OUTPUT_dir):
             os.mkdir(self.OUTPUT_dir)
@@ -147,12 +147,14 @@ class LastCharts:
             os.path.join(self.OUTPUT_dir, f"{self.user}_topArtists_stackedbars.jpg"),
             dpi=600,
         )
+        return fig, ax
 
-    def bar_chart_race(self, column: str = "artist"):
+    def bar_chart_race(self, column: str = "artist", **bcr_options):
         """Create a bar chart race for the given column
 
         Args:
-            column  : Column to use ("artist", "album" or "track")
+            column          : Column to use ("artist", "album" or "track")
+            **bcr_options   : Custom arguments for bar_chart_race as dict
         """
         if column not in ["artist", "album", "track"]:
             raise ValueError(f"Requested column {column} not artist, album or track")
@@ -165,17 +167,20 @@ class LastCharts:
         # Make a new df with correct formatting for bcr:
         df_bcr = self._format_df_for_bcr(self.df, nArtists=400)
 
-        bcr.bar_chart_race(
-            df=df_bcr,
-            filename=os.path.join(self.OUTPUT_dir, filename),
-            n_bars=15,
-            steps_per_period=4,
-            period_length=20,
-            filter_column_colors=True,
-            cmap="Set3",
-            period_fmt="%Y-%m-%d",
-            title=f"{self.user} - Top {column}s",
-        )
+        bcr_arguments = {  # Default iptions for bar chart race
+            "df": df_bcr,
+            "filename": os.path.join(self.OUTPUT_dir, filename),
+            "n_bars": 15,
+            "steps_per_period": 4,
+            "period_length": 20,
+            "filter_column_colors": True,
+            "cmap": "Set3",
+            "period_fmt": "%Y-%m-%d",
+            "title": f"{self.user} - Top {column}s",
+        }
+        bcr_arguments.update(**bcr_options)  # Add or replace defaults with user options
+
+        bcr.bar_chart_race(**bcr_arguments)
 
     def _format_df_for_bcr(self, df: pd.DataFrame, nArtists: int = None):
         """Returns a df formatted for bar chart race"""
@@ -194,6 +199,8 @@ class LastCharts:
         return df_bcr
 
     def _get_cover(self, artist, album, force=0):
+        """Finds the cover for an album, saves it to db/covers as png"""
+
         if not os.path.exists(self.COVER_dir):
             os.mkdir(self.COVER_dir)
 
