@@ -1,6 +1,6 @@
 asttokens==2.4.1
 attrs==23.2.0
-bar-chart-race==0.1.0
+bar_chart_race @ git+https://github.com/dexplo/bar_chart_race@5930c3138a597d30c7d345379f5c1329ba68a035
 cattrs==23.2.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
