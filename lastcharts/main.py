@@ -47,7 +47,7 @@ class LastCharts:
         # Set self.df to None before
         self.df = None
 
-    def load_scobbles(self, user: str = None):
+    def load_scrobbles(self, user: str = None):
         """Loads all scrobbes for user to self.df
 
         Args:
