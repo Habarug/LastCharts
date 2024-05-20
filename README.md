@@ -78,4 +78,5 @@ lc.bar_chart_race(
 ## Plans
 
 - Implement time filtering, so the user can for example only plot this year
-- I don't know 
+- Maybe add cover art to bar chart race labels
+- Maybe add more charts if I get any good ideas
