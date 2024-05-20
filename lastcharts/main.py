@@ -24,6 +24,7 @@ class LastCharts:
     _FONT_SIZE_TICKS = 14
     _FONT_SIZE_LEGEND = 18
     _FIG_SIZE = (15, 7)
+    _FONT = "Comfortaa"
 
     def __init__(self, API_KEY, USER_AGENT):
         """Instiantiate LastCharts class
@@ -66,7 +67,7 @@ class LastCharts:
             freq="d",
         )
 
-    def plot_stacked_bar_plot(self, nArtists=15, artLimitCoefficient=0.02):
+    def stacked_bar_plot(self, nArtists=15, artLimitCoefficient=0.02):
         """Plot stacked bar plot with album distribution of the users top artists
 
         Args:
@@ -75,6 +76,7 @@ class LastCharts:
         """
 
         plt.rcParams["figure.figsize"] = self._FIG_SIZE
+        plt.rcParams["font.family"] = self._FONT
         width = 0.9  # width of bars
         cover = 0.85  # max with of covers. Should not be larger than width above
 
@@ -188,7 +190,7 @@ class LastCharts:
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
             "n_bars": 15,
-            "steps_per_period": 4,
+            "steps_per_period": 2,
             "period_length": length
             / len(dates)
             * 1000,  # period length is in miliseconds
@@ -196,6 +198,7 @@ class LastCharts:
             "cmap": "Set3",
             "period_fmt": "%Y-%m-%d",
             "title": f"{self.user} - Top {column}s",
+            "shared_fontdict": {"family": self._FONT, "weight": "bold"},
         }
         bcr_arguments.update(**bcr_options)  # Add or replace defaults with user options
 
@@ -214,7 +217,9 @@ class LastCharts:
         """
 
         topList = self.df[column].value_counts()[:].index.tolist()
-        df_bcr = pd.DataFrame(columns=topList[:n], index=dates)
+        df_bcr = pd.DataFrame(
+            index=dates, columns=[entry[0:30] for entry in topList[:n]]
+        )
 
         if n is None or n > len(topList):
             n = len(topList)
@@ -223,7 +228,7 @@ class LastCharts:
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
-            df_bcr[entry] = cumSum
+            df_bcr[entry[0:30]] = cumSum
 
         return df_bcr
 
