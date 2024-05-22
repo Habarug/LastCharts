@@ -21,14 +21,14 @@ Python package to plot charts from a user's LastFM data. LastCharts downloads a 
 
 ## Get started
 
-Clone the repo: 
+### Clone the repo
 
 ```
 https://github.com/Habarug/LastCharts.git
 cd LastCharts
 ```
 
-Install requirements:
+### Install requirements
 ```
 pip install -r requirements.txt
 ```
