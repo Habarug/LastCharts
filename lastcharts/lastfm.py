@@ -97,9 +97,6 @@ class LastFM:
 
         df = self._parse_responses(responses)
 
-        if not os.path.exists(self.DB_dir):
-            os.mkdir(self.DB_dir)
-
         return df
 
     def _parse_responses(self, responses: list) -> pd.DataFrame:
@@ -140,10 +137,13 @@ class LastFM:
         if user is None:
             user = self.headers["user-agent"]
 
+        if not os.path.exists(self.DB_dir):
+            os.makedirs(self.DB_dir)
+
         print(f"Loading scrobbles for user: {user}")
 
         print("Checking local database:")
-        path = os.path.join(self.DB_dir, f"{user}.csv")
+        path = os.path.join(self.DB_dir, f"{user.lower()}.csv")
         if os.path.exists(path):
             df = pd.read_csv(path, header=0)
             df["datetime"] = df["datetime"].apply(
@@ -166,7 +166,7 @@ class LastFM:
                 df = pd.concat([df_new, df])
             else:
                 df = df_new
-            df.to_csv(os.path.join(self.DB_dir, f"{user}.csv"), index=False)
+            df.to_csv(path, index=False)
 
         print("Scrobbles loaded")
 
