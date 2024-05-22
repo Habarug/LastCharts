@@ -71,12 +71,18 @@ lc.bar_chart_race(
     f_period            = 20,       # Number of dates to plot per second
     format              = "gif",    # Format to save, gif, mp4,...
     skip_empty_dates    = False,    # Option to skip dates with no scrobbles           
-    **{"steps_per_period" : 2}      # Custom arguments for the bar_chart_race
+    **{"steps_per_period" : 2,      # Number of frames per period
+    "fig_kwargs": {                 # kwargs for fig
+        "dpi": 100},                # dpi of images
+    }  # Custom arguments for the bar_chart_race. More available
 )
 ```
 
 ## Plans
 
+- Fix formatting of longer artist/album names
+- Consider changing default font from Comfortaa to something that is always installed, at least make it easier to change at run time
+- Consider adding a way to estimate how long it will take to generate bar chart race based on length, f_period, steps_per_period and dpi. Can save a number to use for estimates to config/config.json5
 - Implement time filtering, so the user can for example only plot this year
 - Maybe add cover art to bar chart race labels
 - Maybe add more charts if I get any good ideas
