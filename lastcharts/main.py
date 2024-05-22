@@ -263,7 +263,7 @@ class LastCharts:
         """Finds the cover for an album, saves it to db/covers as png"""
 
         if not os.path.exists(self.COVER_dir):
-            os.mkdir(self.COVER_dir)
+            os.makedirs(self.COVER_dir)
 
         filename_base = utils.valid_filename(
             f"{artist}_{album}"
