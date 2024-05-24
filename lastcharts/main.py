@@ -25,7 +25,8 @@ class LastCharts:
     _FONT_SIZE_TITLE = 26
     _FONT_SIZE_TICKS = 14
     _FONT_SIZE_LEGEND = 18
-    _FIG_SIZE = (15, 7)
+    _FIG_SIZE_STACKEDBARS = (15, 7)
+    _FIG_SIZE_BCR = (6, 3.5)
     _FONT = "Comfortaa"
     _CMAP = "Set2"
 
@@ -78,7 +79,7 @@ class LastCharts:
             artLimitCoefficient : Minimum number of scrobbles to include covert art, as fraction of highest bar
         """
 
-        plt.rcParams["figure.figsize"] = self._FIG_SIZE
+        plt.rcParams["figure.figsize"] = self._FIG_SIZE_STACKEDBARS
         plt.rcParams["font.family"] = self._FONT
         plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
         width = 0.9  # width of bars
@@ -93,8 +94,8 @@ class LastCharts:
         scale = (
             self.df[self.df["artist"] == self.topArtists[0]].shape[0]
             / nArtists
-            * self._FIG_SIZE[0]
-            / self._FIG_SIZE[1]
+            * self._FIG_SIZE_STACKEDBARS[0]
+            / self._FIG_SIZE_STACKEDBARS[1]
         )
 
         fig, ax = plt.subplots()
@@ -239,12 +240,13 @@ class LastCharts:
             dates   : List of dates to use
             n       : Number of output columns. Setting it low may mean cause some inaccuracies early in the bcr.
         """
+        max_label_length = 50
 
         topList = self.df[column].value_counts()[:].index.tolist()
         df_bcr = pd.DataFrame(
             index=dates,
             columns=[
-                entry[0:18] for entry in topList[:n]
+                entry[0:max_label_length] for entry in topList[:n]
             ],  # Set max length to 18 for now to avoid label cutoff
         )
 
@@ -255,7 +257,7 @@ class LastCharts:
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
-            df_bcr[entry[0:18]] = cumSum
+            df_bcr[entry[0:max_label_length]] = cumSum
 
         return df_bcr
 
