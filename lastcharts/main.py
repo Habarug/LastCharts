@@ -19,6 +19,7 @@ class LastCharts:
 
     COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "covers")
     OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "output")
+    BCR_COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "bcr_covers")
 
     # Plotting parameters
     _FONT_SIZE_AXIS_LABELS = 16
@@ -163,6 +164,7 @@ class LastCharts:
         f_periods: int = 20,
         format: str = "gif",
         skip_empty_dates: bool = False,
+        cover: bool = True,
         **bcr_options,
     ):
         """Create a bar chart race for the given column
@@ -173,6 +175,7 @@ class LastCharts:
             f_periods       : Number of dates to plot per second. Is used to filter dates and improve performance
             format          : Data format to save to [mp4, gif, ...]
             skip_empty_dates: Set to true to skip empty dates
+            cover           : Include album covers in chart or not. Default: True
 
             **bcr_options   : Custom arguments for bar_chart_race as dict. Some of these will overwrite length. Notable:
                 steps_per_period : Steps to go from one period to the next. Higher = smoother, but increases time and memory use. Default = 2
@@ -208,7 +211,7 @@ class LastCharts:
             dates = dates_tmp
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(self.df, column, dates, n=200)
+        df_bcr = self._format_df_for_bcr(self.df, column, dates, n=200, cover=cover)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
@@ -224,13 +227,20 @@ class LastCharts:
             "title": f"{self.user} - Top {column}s",
             "shared_fontdict": {"family": self._FONT, "weight": "bold"},
             "fig_kwargs": {"dpi": 100},
+            "img_label_folder": self.BCR_COVER_dir if cover else None,
+            "tick_label_mode": "image",
         }
         bcr_arguments.update(**bcr_options)  # Add or replace defaults with user options
 
         bcr.bar_chart_race(**bcr_arguments)
 
     def _format_df_for_bcr(
-        self, df: pd.DataFrame, column: str, dates: list, n: int = None
+        self,
+        df: pd.DataFrame,
+        column: str,
+        dates: list,
+        n: int = None,
+        cover: bool = True,
     ):
         """Returns a df formatted for bar chart race
 
@@ -239,14 +249,18 @@ class LastCharts:
             column  : Column to count (artist, album, track)
             dates   : List of dates to use
             n       : Number of output columns. Setting it low may mean cause some inaccuracies early in the bcr.
+
         """
+        if not os.path.exists(self.BCR_COVER_dir):
+            os.makedirs(self.BCR_COVER_dir)
+
         max_label_length = 17
 
         topList = self.df[column].value_counts()[:].index.tolist()
         df_bcr = pd.DataFrame(
             index=dates,
             columns=[
-                entry[0:max_label_length] for entry in topList[:n]
+                utils.valid_filename(entry)[0:max_label_length] for entry in topList[:n]
             ],  # Set max length to 18 for now to avoid label cutoff
         )
 
@@ -254,10 +268,29 @@ class LastCharts:
             n = len(topList)
         for entry in topList[:n]:
             df_filtered = df[df[column] == entry]
+            entry = utils.valid_filename(
+                entry
+            )  # Make it a valid filename in case cover is used
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
             df_bcr[entry[0:max_label_length]] = cumSum
+
+            if cover and not os.path.exists(
+                os.path.join(self.BCR_COVER_dir, f"{entry}.png")
+            ):
+                # First check if it exists in COVER_dir, if not add it
+                artist = df_filtered["artist"].iloc[0]
+                album = df_filtered["album"].iloc[0]
+                filename = f"{utils.valid_filename(f"{artist}_{album}")}.png"
+                if not os.path.exists(filename):
+                    self._get_cover(artist, album)
+
+                # Create symlink to album cover. TODO: Might not work on windows, figure out
+                os.symlink(
+                    src=os.path.join(self.COVER_dir, filename),
+                    dst=os.path.join(self.BCR_COVER_dir, f"{entry}.png"),
+                )
 
         return df_bcr
 
