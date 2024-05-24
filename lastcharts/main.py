@@ -269,12 +269,12 @@ class LastCharts:
         for entry in topList[:n]:
             df_filtered = df[df[column] == entry]
             entry = utils.valid_filename(
-                entry
+                entry[0:max_label_length]
             )  # Make it a valid filename in case cover is used
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
-            df_bcr[entry[0:max_label_length]] = cumSum
+            df_bcr[entry] = cumSum
 
             if cover and not os.path.exists(
                 os.path.join(self.BCR_COVER_dir, f"{entry}.png")
