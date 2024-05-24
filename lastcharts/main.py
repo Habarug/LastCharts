@@ -240,7 +240,7 @@ class LastCharts:
             dates   : List of dates to use
             n       : Number of output columns. Setting it low may mean cause some inaccuracies early in the bcr.
         """
-        max_label_length = 50
+        max_label_length = 17
 
         topList = self.df[column].value_counts()[:].index.tolist()
         df_bcr = pd.DataFrame(
