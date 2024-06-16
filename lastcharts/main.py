@@ -101,7 +101,7 @@ class LastCharts:
 
         return self.df[
             (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
-        ]
+        ].sort_values("datetime", ascending=False)
 
     def stacked_bar_plot(
         self,
@@ -197,6 +197,8 @@ class LastCharts:
     def bar_chart_race(
         self,
         column: str = "artist",
+        startDate: str = None,
+        endDate: str = None,
         length: int = 10,
         f_periods: int = 20,
         format: str = "gif",
@@ -207,6 +209,8 @@ class LastCharts:
 
         Args:
             column          : Column to use ("artist", "album" or "track")
+            startDate       : Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+            endDate         : Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
             length          : Length of video in seconds
             f_periods       : Number of dates to plot per second. Is used to filter dates and improve performance
             format          : Data format to save to [mp4, gif, ...]
@@ -224,13 +228,19 @@ class LastCharts:
 
         filename = f"{self.user}_BCR_{column}.{format}"
 
+        df = self.filter_df(self.df, startDate, endDate)
+
         # Potentially skip dates with no scrobbles
         if skip_empty_dates:
-            dates = pd.to_datetime(self.df["datetime"].dt.date.unique(), utc=True)[
+            dates = pd.to_datetime(df["datetime"].dt.date.unique(), utc=True)[
                 ::-1
             ]  # Reverse order
         else:
-            dates = self.dates
+            dates = pd.date_range(
+                df["datetime"].iloc[-1],
+                df["datetime"].iloc[0],
+                freq="d",
+            )
 
         # Filter the dates, running with thousands of periods is extremely slow and memory instensive
         # Try 1 or 2 per second maybe?
@@ -246,7 +256,7 @@ class LastCharts:
             dates = dates_tmp
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(self.df, column, dates, n=200)
+        df_bcr = self._format_df_for_bcr(df, column, dates, n=200)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
@@ -280,7 +290,7 @@ class LastCharts:
         """
         max_label_length = 17
 
-        topList = self.df[column].value_counts()[:].index.tolist()
+        topList = df[column].value_counts()[:].index.tolist()
         df_bcr = pd.DataFrame(
             index=dates,
             columns=[
