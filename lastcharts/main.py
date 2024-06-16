@@ -48,6 +48,11 @@ class LastCharts:
         # Set self.df to None before
         self.df = None
 
+        # Configure matplotlib for stacked bar plot
+        plt.rcParams["figure.figsize"] = self._FIG_SIZE_STACKEDBARS
+        plt.rcParams["font.family"] = self._FONT
+        plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
+
     def load_scrobbles(self, user: str = None):
         """Loads all scrobbes for user to self.df
 
@@ -71,28 +76,50 @@ class LastCharts:
             freq="d",
         )
 
-    def stacked_bar_plot(self, nArtists=15, artLimitCoefficient=0.02):
+    def stacked_bar_plot(
+        self,
+        startDate: str = None,
+        endDate: str = None,
+        nArtists: int = 15,
+        artLimitCoefficient: float = 0.02,
+    ):
         """Plot stacked bar plot with album distribution of the users top artists
 
         Args:
+            startDate           : Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+            endDate             : Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
             nArtists            : Number of artists to plot
             artLimitCoefficient : Minimum number of scrobbles to include covert art, as fraction of highest bar
         """
 
-        plt.rcParams["figure.figsize"] = self._FIG_SIZE_STACKEDBARS
-        plt.rcParams["font.family"] = self._FONT
-        plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
         width = 0.9  # width of bars
         cover = 0.85  # max with of covers. Should not be larger than width above
 
+        # Optional filtering of dataframe to only include scrobbles from specific time period
+        # Every timestamp is localized to UTC, because pandas to_datetime returns timezone-aware series
+        if startDate is None:
+            startDate = pd.Timestamp.min.tz_localize("UTC")
+        else:
+            startDate = pd.Timestamp(startDate, tz="UTC")
+
+        if endDate is None:
+            endDate = pd.Timestamp.max.tz_localize("UTC")
+        else:
+            endDate = pd.Timestamp(endDate, tz="UTC")
+
+        if startDate >= endDate:
+            raise ValueError("endDate must be after startDate")
+
+        df = self.df[
+            (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
+        ]
+        topArtists = df["artist"].value_counts()[:].index.tolist()
+
         # Calculate how many plays an album must have to plot cover art
-        artLimit = (
-            artLimitCoefficient
-            * self.df[self.df["artist"] == self.topArtists[0]].shape[0]
-        )
+        artLimit = artLimitCoefficient * df[df["artist"] == topArtists[0]].shape[0]
         # Scale factor to set correct size of covers
         scale = (
-            self.df[self.df["artist"] == self.topArtists[0]].shape[0]
+            df[df["artist"] == topArtists[0]].shape[0]
             / nArtists
             * self._FIG_SIZE_STACKEDBARS[0]
             / self._FIG_SIZE_STACKEDBARS[1]
@@ -100,8 +127,8 @@ class LastCharts:
 
         fig, ax = plt.subplots()
 
-        for artist in self.topArtists[0:nArtists]:
-            filterArtist = self.df[(self.df["artist"] == artist)]
+        for artist in topArtists[0:nArtists]:
+            filterArtist = df[(df["artist"] == artist)]
             albums = filterArtist["album"].unique()
 
             albumsCount = []
@@ -144,7 +171,7 @@ class LastCharts:
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
         plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
         plt.xlim(-0.5, nArtists - 1.5)
-        plt.ylim(0, self.df[self.df["artist"] == self.topArtists[0]].shape[0])
+        plt.ylim(0, df[df["artist"] == topArtists[0]].shape[0])
         fig.patch.set_facecolor("xkcd:white")
         plt.tight_layout()
 
