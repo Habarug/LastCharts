@@ -76,6 +76,33 @@ class LastCharts:
             freq="d",
         )
 
+    def filter_df(self, df: pd.DataFrame, startDate: str = None, endDate: str = None):
+        """Filter dataframe to only include dates between startdate and endate
+
+        Args:
+            df          : Pandas dataframe with scrobble data
+            startDate   : Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+            endDate     : Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
+        """
+
+        # Every timestamp is localized to UTC, because pandas to_datetime returns timezone-aware series
+        if startDate is None:
+            startDate = pd.Timestamp.min.tz_localize("UTC")
+        else:
+            startDate = pd.Timestamp(startDate, tz="UTC")
+
+        if endDate is None:
+            endDate = pd.Timestamp.max.tz_localize("UTC")
+        else:
+            endDate = pd.Timestamp(endDate, tz="UTC")
+
+        if startDate >= endDate:
+            raise ValueError("endDate must be after startDate")
+
+        return self.df[
+            (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
+        ]
+
     def stacked_bar_plot(
         self,
         startDate: str = None,
@@ -96,23 +123,7 @@ class LastCharts:
         cover = 0.85  # max with of covers. Should not be larger than width above
 
         # Optional filtering of dataframe to only include scrobbles from specific time period
-        # Every timestamp is localized to UTC, because pandas to_datetime returns timezone-aware series
-        if startDate is None:
-            startDate = pd.Timestamp.min.tz_localize("UTC")
-        else:
-            startDate = pd.Timestamp(startDate, tz="UTC")
-
-        if endDate is None:
-            endDate = pd.Timestamp.max.tz_localize("UTC")
-        else:
-            endDate = pd.Timestamp(endDate, tz="UTC")
-
-        if startDate >= endDate:
-            raise ValueError("endDate must be after startDate")
-
-        df = self.df[
-            (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
-        ]
+        df = self.filter_df(self.df, startDate, endDate)
         topArtists = df["artist"].value_counts()[:].index.tolist()
 
         # Calculate how many plays an album must have to plot cover art
