@@ -243,17 +243,20 @@ class LastCharts:
             )
 
         # Filter the dates, running with thousands of periods is extremely slow and memory instensive
-        # Try 1 or 2 per second maybe?
+        # Default: 2 periods per second (f_period = 2)
         # Make sure to get last date included, first not that important
         # Create it backwards and reverse it afterwards, makes sure we include last date
         if len(dates) > (length * f_periods):
-            dates_tmp = []
             step = math.floor(len(dates) / (length * f_periods))  # index step
-            for idx in range(length * f_periods):
-                dates_tmp.append(dates[-1 - idx * step])
 
-            dates_tmp.reverse()
-            dates = dates_tmp
+            # Only perform date filtering if it is significant enough, otherwise might as well include every data point
+            if step >= 5:
+                dates_tmp = []
+                for idx in range(length * f_periods):
+                    dates_tmp.append(dates[-1 - idx * step])
+
+                dates_tmp.reverse()
+                dates = dates_tmp
 
         # Make a new df with correct formatting for bcr:
         df_bcr = self._format_df_for_bcr(df, column, dates, n=200)
