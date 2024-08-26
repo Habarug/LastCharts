@@ -164,6 +164,7 @@ class LastFM:
                 df = pd.concat([df_new, df])
             else:
                 df = df_new
+            df = df.drop_duplicates()
             df.to_csv(path, index=False)
 
         print("Scrobbles loaded")
