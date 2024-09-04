@@ -127,7 +127,7 @@ class LastCharts:
         df = self.filter_df(self.df, startDate, endDate)
 
         querymatch = process.extractOne(query, set(self.df[column]))
-        if querymatch[1] < 95:
+        if querymatch[1] < 80:
             print(f"No good match found for {query}, did you mean: {querymatch[0]}?")
             return
         else:
