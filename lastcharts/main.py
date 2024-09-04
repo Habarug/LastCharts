@@ -192,7 +192,7 @@ class LastCharts:
             os.path.join(self.OUTPUT_dir, f"{self.user}_topArtists_stackedbars.jpg"),
             dpi=600,
         )
-        return fig
+        return fig, ax
 
     def bar_chart_race(
         self,
