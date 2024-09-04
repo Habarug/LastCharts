@@ -138,6 +138,73 @@ class LastCharts:
         print(f"Number of scrobbles for {query}: {nScrobbles}")
         return nScrobbles
 
+    def plot_top(
+        self,
+        column: str = "artist",
+        nBars: int = 15,
+        startDate: str = None,
+        endDate: str = None,
+    ):
+        """Plot top artist/album/track either all time or for a given time period
+
+        Args:
+            column      : artist/album/track (default: artist)
+            nBars       : number of bars to plot
+            startDate   : Optional start date
+            endDate     : Optional end date
+        """
+        if column not in ["artist", "album", "track"]:
+            raise ValueError("Column input has to be artist, album or track.")
+
+        df = self.filter_df(self.df, startDate, endDate)
+
+        topList = df[column].value_counts()[:nBars].index.tolist()
+
+        fig, ax = plt.subplots()
+
+        yMax = 0
+        scale = (
+            df[df[column] == topList[0]].shape[0]
+            / nBars
+            * self._FIG_SIZE_STACKEDBARS[0]
+            / self._FIG_SIZE_STACKEDBARS[1]
+        )
+        width = 0.9
+        cover = 0.85
+
+        for idm, match in enumerate(topList):
+            df_filtered = df[df[column] == match]
+            nScrobbles = len(df_filtered)
+            yMax = nScrobbles if nScrobbles > yMax else yMax
+            bp = ax.bar(idm, nScrobbles, width)
+
+            mostCommon = df_filtered[["artist", "album", "track"]].mode()
+            img = self._get_cover(
+                mostCommon["artist"].iloc[0], mostCommon["album"].iloc[0]
+            )
+            if img is not None:
+                patch = bp.patches
+                (x, y) = patch[0].get_xy()
+                size = min(nScrobbles * 0.95, cover * scale)
+                extent = [
+                    x + width / 2 - size / (2 * scale),
+                    x + width / 2 + size / (2 * scale),
+                    nScrobbles / 2 - size / 2,
+                    nScrobbles / 2 + size / 2,
+                ]
+                # ax.set_autoscale_on(False)
+                ax.imshow(img, extent=extent, zorder=3)
+
+        plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
+        plt.yticks(fontsize=self._FONT_SIZE_TICKS)
+        plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
+        plt.xlim(-0.5, nBars - 0.5)
+        plt.ylim(0, yMax)
+        fig.patch.set_facecolor("xkcd:white")
+        plt.tight_layout()
+
+        return fig, ax
+
     def stacked_bar_plot(
         self,
         startDate: str = None,
