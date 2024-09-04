@@ -216,7 +216,7 @@ class LastCharts:
         plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
         plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
-        plt.xlim(-0.5, nArtists - 1.5)
+        plt.xlim(-0.5, nArtists - 0.5)
         plt.ylim(0, df[df["artist"] == topArtists[0]].shape[0])
         fig.patch.set_facecolor("xkcd:white")
         plt.tight_layout()
