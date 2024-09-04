@@ -176,7 +176,7 @@ class LastCharts:
             df_filtered = df[df[column] == match]
             nScrobbles = len(df_filtered)
             yMax = nScrobbles if nScrobbles > yMax else yMax
-            bp = ax.bar(idm, nScrobbles, width)
+            bp = ax.bar(match, nScrobbles, width)
 
             mostCommon = df_filtered[["artist", "album", "track"]].mode()
             img = self._get_cover(
@@ -193,7 +193,7 @@ class LastCharts:
                     nScrobbles / 2 + size / 2,
                 ]
                 # ax.set_autoscale_on(False)
-                ax.imshow(img, extent=extent, zorder=3)
+                # ax.imshow(img, extent=extent, zorder=3)
 
         plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
