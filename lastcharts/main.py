@@ -133,9 +133,10 @@ class LastCharts:
         else:
             query = querymatch[0]
 
-        n = sum(df[column] == query)
+        nScrobbles = sum(df[column] == query)
 
-        print(f"Number of scrobbles for {query}: {n}")
+        print(f"Number of scrobbles for {query}: {nScrobbles}")
+        return nScrobbles
 
     def stacked_bar_plot(
         self,
