@@ -9,6 +9,7 @@ import pandas as pd
 import pyjson5
 from cycler import cycler
 from PIL import Image
+from thefuzz import process
 
 from . import utils
 from .lastfm import LastFM
@@ -102,6 +103,39 @@ class LastCharts:
         return self.df[
             (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
         ].sort_values("datetime", ascending=False)
+
+    def get_scrobbles_for(
+        self,
+        query: str,
+        column: str = "artist",
+        startDate: str = None,
+        endDate: str = None,
+    ):
+        """Prints the number of scrobbles for the given query
+
+        Args:
+            query       : Artist/album/track to get the number of scrobbles for
+            column      : artist/album/track (default: artist)
+            startDate   : Optional start date
+            endDate     : Optional end date
+        """
+
+        if column not in ["artist", "album", "track"]:
+            raise ValueError("Column input has to be artist, album or track.")
+
+        # Optional filtering of scrobbles
+        df = self.filter_df(self.df, startDate, endDate)
+
+        querymatch = process.extractOne(query, set(self.df[column]))
+        if querymatch[1] < 95:
+            print(f"No good match found for {query}, did you mean: {querymatch[0]}?")
+            return
+        else:
+            query = querymatch[0]
+
+        n = sum(df[column] == query)
+
+        print(f"Number of scrobbles for {query}: {n}")
 
     def stacked_bar_plot(
         self,
