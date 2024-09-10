@@ -5,6 +5,7 @@ cattrs==23.2.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
+colorama==0.4.6
 comm==0.2.2
 contourpy==1.2.1
 cycler==0.12.1
@@ -40,12 +41,15 @@ pyjson5==1.6.6
 pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 pytz==2024.1
+pywin32==306
 pyzmq==26.0.3
+rapidfuzz==3.9.7
 requests==2.32.2
 requests-cache==1.2.0
 ruff==0.4.4
 six==1.16.0
 stack-data==0.6.3
+thefuzz==0.22.1
 tornado==6.4.1
 traitlets==5.14.3
 tzdata==2024.1
