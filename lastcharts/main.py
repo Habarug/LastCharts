@@ -285,6 +285,10 @@ class LastCharts:
         plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
         plt.xlim(-0.5, nArtists - 0.5)
         plt.ylim(0, df[df["artist"] == topArtists[0]].shape[0])
+        plt.title(
+            f"Top artists for {self.user}, {self._format_timeperiod(df)}",
+            fontsize=self._FONT_SIZE_AXIS_LABELS,
+        )
         fig.patch.set_facecolor("xkcd:white")
         plt.tight_layout()
 
@@ -450,6 +454,14 @@ class LastCharts:
         else:
             urllib.request.urlretrieve(url, savePath)
         return mpimg.imread(savePath)
+
+    def _format_timeperiod(self, df) -> str:
+        """Returns a string describing the time period used in plots
+
+        Args:
+            df: Dataframe used for plotting
+        """
+        return f"{df["datetime"].iloc[-1].strftime("%Y-%m-%d")} - {df["datetime"].iloc[0].strftime("%Y-%m-%d")}"
 
 
 def main():
