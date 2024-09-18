@@ -6,6 +6,7 @@ certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
+colorthief==0.2.1
 comm==0.2.2
 contourpy==1.2.1
 cycler==0.12.1
