@@ -171,7 +171,7 @@ class LastCharts:
             / self._FIG_SIZE_STACKEDBARS[1]
         )
         width = 0.9
-        cover = 0.85
+        cover = 0.82
 
         for idm, match in enumerate(topList):
             df_filtered = df[df[column] == match]
@@ -227,7 +227,7 @@ class LastCharts:
         """
 
         width = 0.9  # width of bars
-        cover = 0.85  # max with of covers. Should not be larger than width above
+        cover = 0.82  # max with of covers. Should not be larger than width above
 
         # Optional filtering of dataframe to only include scrobbles from specific time period
         df = self.filter_df(self.df, startDate, endDate)
