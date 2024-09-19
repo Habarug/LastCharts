@@ -459,11 +459,17 @@ class LastCharts:
             if not os.path.exists(DIR_jpg):
                 os.mkdir(DIR_jpg)
             path = os.path.join(DIR_jpg, f"{filename_base}.{fformat}")
-            urllib.request.urlretrieve(url, path)
+            try:
+                urllib.request.urlretrieve(url, path)
+            except Exception:
+                return [[0.5, 0.5], [0.5, 0.5]], [0.5, 0.5, 0.5]
             im = Image.open(path)
             im.save(savePath)
         else:
-            urllib.request.urlretrieve(url, savePath)
+            try:
+                urllib.request.urlretrieve(url, savePath)
+            except Exception:
+                return [[0.5, 0.5], [0.5, 0.5]], [0.5, 0.5, 0.5]
         ct = ColorThief(savePath)
         rgb = [c / 256 for c in ct.get_color()]
         return mpimg.imread(savePath), rgb
