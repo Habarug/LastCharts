@@ -7,6 +7,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
 import pyjson5
+from colorthief import ColorThief
 from cycler import cycler
 from PIL import Image
 from thefuzz import process
@@ -170,7 +171,7 @@ class LastCharts:
             / self._FIG_SIZE_STACKEDBARS[1]
         )
         width = 0.9
-        cover = 0.85
+        cover = 0.82
 
         for idm, match in enumerate(topList):
             df_filtered = df[df[column] == match]
@@ -179,7 +180,7 @@ class LastCharts:
             bp = ax.bar(match, nScrobbles, width)
 
             mostCommon = df_filtered[["artist", "album", "track"]].mode()
-            img = self._get_cover(
+            img, rgb = self._get_cover(
                 mostCommon["artist"].iloc[0], mostCommon["album"].iloc[0]
             )
             if img is not None:
@@ -194,6 +195,10 @@ class LastCharts:
                 ]
 
                 ax.imshow(img, extent=extent, aspect="auto", zorder=3)
+                bp[0].set_facecolor(rgb)
+                bp[0].set_edgecolor(
+                    [1 - c for c in rgb]
+                )  # dark border for white and opposite
 
         plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
@@ -222,7 +227,7 @@ class LastCharts:
         """
 
         width = 0.9  # width of bars
-        cover = 0.85  # max with of covers. Should not be larger than width above
+        cover = 0.82  # max with of covers. Should not be larger than width above
 
         # Optional filtering of dataframe to only include scrobbles from specific time period
         df = self.filter_df(self.df, startDate, endDate)
@@ -272,10 +277,14 @@ class LastCharts:
                         bottom + count / 2 - size / 2,
                         bottom + count / 2 + size / 2,
                     ]
-                    img = self._get_cover(artist, albums[idx])
+                    img, rgb = self._get_cover(artist, albums[idx])
                     ax.set_autoscale_on(False)
                     if img is not None:
                         plt.imshow(img, extent=extent, aspect="auto", zorder=3)
+                    bp[0].set_facecolor(rgb)
+                    bp[0].set_edgecolor(
+                        [1 - c for c in rgb]
+                    )  # dark border for white and opposite
 
                 bottom += count  # Set bottom of next bar to top of this one
 
@@ -419,7 +428,7 @@ class LastCharts:
         return df_bcr
 
     def _get_cover(self, artist, album, force=0):
-        """Finds the cover for an album, saves it to db/covers as png"""
+        """Finds the cover for an album, saves it to db/covers as png. Returns image and dominant color as rgb."""
 
         if not os.path.exists(self.COVER_dir):
             os.makedirs(self.COVER_dir)
@@ -431,7 +440,9 @@ class LastCharts:
 
         if not force:  # If no Force, check local folder first
             if os.path.exists(savePath):
-                return mpimg.imread(savePath)
+                ct = ColorThief(savePath)
+                rgb = [c / 256 for c in ct.get_color()]
+                return mpimg.imread(savePath), rgb
 
         # If not offline, go online
         url = (
@@ -453,7 +464,9 @@ class LastCharts:
             im.save(savePath)
         else:
             urllib.request.urlretrieve(url, savePath)
-        return mpimg.imread(savePath)
+        ct = ColorThief(savePath)
+        rgb = [c / 256 for c in ct.get_color()]
+        return mpimg.imread(savePath), rgb
 
     def _format_timeperiod(self, df) -> str:
         """Returns a string describing the time period used in plots
