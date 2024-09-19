@@ -195,7 +195,10 @@ class LastCharts:
                 ]
 
                 ax.imshow(img, extent=extent, aspect="auto", zorder=3)
-                bp[0].set_color(rgb)
+                bp[0].set_facecolor(rgb)
+                bp[0].set_edgecolor(
+                    [1 - c for c in rgb]
+                )  # dark border for white and opposite
 
         plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
@@ -278,7 +281,10 @@ class LastCharts:
                     ax.set_autoscale_on(False)
                     if img is not None:
                         plt.imshow(img, extent=extent, aspect="auto", zorder=3)
-                    bp[0].set_color(rgb)
+                    bp[0].set_facecolor(rgb)
+                    bp[0].set_edgecolor(
+                        [1 - c for c in rgb]
+                    )  # dark border for white and opposite
 
                 bottom += count  # Set bottom of next bar to top of this one
 
