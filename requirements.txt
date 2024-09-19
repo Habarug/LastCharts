@@ -2,7 +2,7 @@ asttokens==2.4.1
 attrs==23.2.0
 bar_chart_race @ git+https://github.com/dexplo/bar_chart_race@5930c3138a597d30c7d345379f5c1329ba68a035
 cattrs==23.2.3
-certifi==2024.2.2
+certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
