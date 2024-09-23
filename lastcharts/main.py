@@ -200,6 +200,10 @@ class LastCharts:
                     [1 - c for c in rgb]
                 )  # dark border for white and opposite
 
+        xlabels = utils.shorten_strings(
+            [label.get_text() for label in ax.get_xticklabels()]
+        )
+        ax.xaxis.set_ticklabels(xlabels)
         plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
         plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
@@ -289,6 +293,10 @@ class LastCharts:
                 bottom += count  # Set bottom of next bar to top of this one
 
         # Adjust plot formatting
+        xlabels = utils.shorten_strings(
+            [label.get_text() for label in ax.get_xticklabels()]
+        )
+        ax.xaxis.set_ticklabels(xlabels)
         plt.xticks(rotation=45, fontsize=self._FONT_SIZE_TICKS)
         plt.yticks(fontsize=self._FONT_SIZE_TICKS)
         plt.ylabel("Scrobble count", fontsize=self._FONT_SIZE_AXIS_LABELS)
