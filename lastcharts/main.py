@@ -197,7 +197,7 @@ class LastCharts:
                 ax.imshow(img, extent=extent, aspect="auto", zorder=3)
                 bp[0].set_facecolor(rgb)
                 bp[0].set_edgecolor(
-                    [1 - c for c in rgb]
+                    [1 - max(rgb)] * 3
                 )  # dark border for white and opposite
 
         xlabels = utils.shorten_strings(
@@ -287,7 +287,7 @@ class LastCharts:
                         plt.imshow(img, extent=extent, aspect="auto", zorder=3)
                     bp[0].set_facecolor(rgb)
                     bp[0].set_edgecolor(
-                        [1 - c for c in rgb]
+                        [1 - max(rgb)] * 3
                     )  # dark border for white and opposite
 
                 bottom += count  # Set bottom of next bar to top of this one
