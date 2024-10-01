@@ -5,3 +5,4 @@
 */__pycache__
 http_cache.sqlite
 /output
+.DS_Store
