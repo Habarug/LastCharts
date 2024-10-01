@@ -1,6 +1,7 @@
 import math
 import os
 import urllib
+from datetime import timedelta
 
 import bar_chart_race as bcr
 import matplotlib.image as mpimg
@@ -96,13 +97,14 @@ class LastCharts:
         if endDate is None:
             endDate = pd.Timestamp.max.tz_localize("UTC")
         else:
-            endDate = pd.Timestamp(endDate, tz="UTC")
+            # Add a single day so that filtering includes the given end date
+            endDate = pd.Timestamp(endDate, tz="UTC") + timedelta(days=1)
 
         if startDate >= endDate:
             raise ValueError("endDate must be after startDate")
 
         return self.df[
-            (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
+            (self.df["datetime"] >= startDate) & (self.df["datetime"] < endDate)
         ].sort_values("datetime", ascending=False)
 
     def get_scrobbles_for(
