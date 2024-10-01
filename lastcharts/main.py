@@ -437,11 +437,15 @@ class LastCharts:
 
         return df_bcr
 
-    def _get_cover(self, artist, album, force=0):
+    def _get_cover(self, artist: str, album: str = None, force=0):
         """Finds the cover for an album, saves it to db/covers as png. Returns image and dominant color as rgb."""
 
         if not os.path.exists(self.COVER_dir):
             os.makedirs(self.COVER_dir)
+
+        # If album not provided, use most played album
+        if not album:
+            album = self.df[self.df["artist"] == artist].album.mode().iloc[0]
 
         filename_base = utils.valid_filename(
             f"{artist}_{album}"
