@@ -2,7 +2,7 @@
 /config
 .venv
 /db
-*/*__pycache__
+*__pycache__*
 http_cache.sqlite
 /output
 .DS_Store

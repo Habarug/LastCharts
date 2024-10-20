@@ -4,6 +4,7 @@ import urllib
 from datetime import timedelta
 
 import bar_chart_race as bcr
+import matplotlib.font_manager as font_manager
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -53,7 +54,10 @@ class LastCharts:
 
         # Configure matplotlib for stacked bar plot
         plt.rcParams["figure.figsize"] = self._FIG_SIZE_STACKEDBARS
-        plt.rcParams["font.family"] = self._FONT
+        if self._FONT in font_manager.fontManager.get_font_names():
+            plt.rcParams["font.family"] = self._FONT
+        else:
+            print(f"Font {self._FONT} not installed, using default font.")
         plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
 
     def load_scrobbles(self, user: str = None):
