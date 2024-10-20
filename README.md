@@ -54,7 +54,9 @@ lc.load_scrobbles(user = ENTER USERNAME)
 Once the scrobbles are loaded you can start plotting. The first time you plot a stacked bar plot album covers are downloaded to your computer, so it may take a little while to run the first time. 
 ```python
 lc.stacked_bar_plot(
-    nArtists = 15,              # Change how many artists are included
+    startDate           = None, # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+    endDate             = None, # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
+    nArtists            = 15,   # Change how many artists are included
     artLimitCoefficient = 0.05  # Cofficient to determine which albums will include cover art. 
                                 # 0.05 => only albums with at least 5% of the highest bar will get a cover art
 )
@@ -67,6 +69,8 @@ This is very cool, but quite slow and memory intensive, so you may have to tweak
 ```python
 lc.bar_chart_race(
     column              = "artist", # Can select artist, album or track
+    startDate           = None,     # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+    endDate             = None,     # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
     length              = 10,       # Length of the resulting video in seconds
     f_period            = 20,       # Number of dates to plot per second
     format              = "gif",    # Format to save, gif, mp4,...
@@ -78,11 +82,21 @@ lc.bar_chart_race(
 )
 ```
 
+### Plot top artists/album/tracks
+Bar plot of top artists, album or tracks, with optional time filtering.
+
+```python
+lc.plot_top(
+    column      = "artist", # Artist, album or track
+    nBars       = 15,       # Number of bars to plot
+    startDate   = None,     # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+    endDate     = None      # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
+)
+```
+
 ## Plans
 
 - Fix formatting of longer artist/album names
-- Consider changing default font from Comfortaa to something that is always installed, at least make it easier to change at run time
 - Consider adding a way to estimate how long it will take to generate bar chart race based on length, f_period, steps_per_period and dpi. Can save a number to use for estimates to config/config.json5
-- Implement time filtering, so the user can for example only plot this year
 - Maybe add cover art to bar chart race labels
 - Maybe add more charts if I get any good ideas
