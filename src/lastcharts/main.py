@@ -20,8 +20,8 @@ from .lastfm import LastFM
 class LastCharts:
     """Python class to plot charts from LastFM data"""
 
-    COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "covers")
-    OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "output")
+    COVER_dir = os.path.join(os.path.dirname(__file__), "..", "..", "db", "covers")
+    OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "..", "output")
 
     # Plotting parameters
     _FONT_SIZE_AXIS_LABELS = 16

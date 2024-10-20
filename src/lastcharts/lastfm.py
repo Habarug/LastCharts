@@ -10,7 +10,7 @@ class LastFM:
     """Class to retrieve data from the LastFM API"""
 
     URL_base = "http://ws.audioscrobbler.com/2.0/"
-    DB_dir = os.path.join(os.path.dirname(__file__), "..", "db", "scrobbles")
+    DB_dir = os.path.join(os.path.dirname(__file__), "..", "..", "db", "scrobbles")
     df_cols = ["artist", "album", "track", "datetime", "image"]
 
     def __init__(self, API_key, USER_AGENT) -> None:
@@ -146,7 +146,9 @@ class LastFM:
         path = os.path.join(self.DB_dir, f"{user.lower()}.csv")
         if os.path.exists(path):
             df = pd.read_csv(path, header=0)
-            df["datetime"] = df["datetime"].apply(pd.to_datetime, format="ISO8601")
+            df["datetime"] = df["datetime"].apply(
+                pd.to_datetime, format="ISO8601", utc=True
+            )
             start = int(
                 df["datetime"].iloc[0].timestamp() + 60
             )  # +1 was not working, maybe it needs even number
@@ -164,7 +166,6 @@ class LastFM:
                 df = pd.concat([df_new, df])
             else:
                 df = df_new
-            df = df.drop_duplicates()
             df.to_csv(path, index=False)
 
         print("Scrobbles loaded")
