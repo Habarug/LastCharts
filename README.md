@@ -28,9 +28,9 @@ https://github.com/Habarug/LastCharts.git
 cd LastCharts
 ```
 
-### Install requirements
+### Install lastcharts
 ```
-pip install -r requirements.txt
+pip install .
 ```
 
 ### Import package and instantiate LastCharts

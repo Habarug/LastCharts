@@ -499,7 +499,7 @@ class LastCharts:
 
 def main():
     with open(
-        os.path.join(os.path.dirname(__file__), "..", "config", "config.json5")
+        os.path.join(os.path.dirname(__file__), "..", "..", "config", "config.json5")
     ) as f:
         priv = pyjson5.load(f)
 
