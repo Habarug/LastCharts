@@ -329,7 +329,7 @@ class LastCharts:
         startDate: str = None,
         endDate: str = None,
         length: int = 10,
-        f_periods: int = 20,
+        f_periods: int = 15,
         format: str = "gif",
         skip_empty_dates: bool = False,
         **bcr_options,
@@ -394,7 +394,7 @@ class LastCharts:
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
             "n_bars": 10,
-            "steps_per_period": 2,
+            "steps_per_period": 4,
             "period_length": int(
                 length / len(dates) * 1000
             ),  # period length is in miliseconds
