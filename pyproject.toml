@@ -1,0 +1,15 @@
+[build-system]
+requires        = ["setuptools"]
+build-baclemd   = "setuptools.build_meta"
+
+[project]
+name        = "lastcharts"
+version     = "1.0"
+description = "Python package to plot LastFM stats"
+readme      = "README.md"
+authors     = [{name = "Habarug"}]
+
+dynamic     = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies    = {file = ["requirements.txt"]}

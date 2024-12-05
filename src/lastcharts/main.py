@@ -1,8 +1,10 @@
 import math
 import os
 import urllib
+from datetime import timedelta
 
 import bar_chart_race as bcr
+import matplotlib.font_manager as font_manager
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -19,8 +21,8 @@ from .lastfm import LastFM
 class LastCharts:
     """Python class to plot charts from LastFM data"""
 
-    COVER_dir = os.path.join(os.path.dirname(__file__), "..", "db", "covers")
-    OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "output")
+    COVER_dir = os.path.join(os.path.dirname(__file__), "..", "..", "db", "covers")
+    OUTPUT_dir = os.path.join(os.path.dirname(__file__), "..", "..", "output")
 
     # Plotting parameters
     _FONT_SIZE_AXIS_LABELS = 16
@@ -52,7 +54,10 @@ class LastCharts:
 
         # Configure matplotlib for stacked bar plot
         plt.rcParams["figure.figsize"] = self._FIG_SIZE_STACKEDBARS
-        plt.rcParams["font.family"] = self._FONT
+        if self._FONT in font_manager.fontManager.get_font_names():
+            plt.rcParams["font.family"] = self._FONT
+        else:
+            print(f"Font {self._FONT} not installed, using default font.")
         plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
 
     def load_scrobbles(self, user: str = None):
@@ -96,13 +101,14 @@ class LastCharts:
         if endDate is None:
             endDate = pd.Timestamp.max.tz_localize("UTC")
         else:
-            endDate = pd.Timestamp(endDate, tz="UTC")
+            # Add a single day so that filtering includes the given end date
+            endDate = pd.Timestamp(endDate, tz="UTC") + timedelta(days=1)
 
         if startDate >= endDate:
             raise ValueError("endDate must be after startDate")
 
         return self.df[
-            (self.df["datetime"] >= startDate) & (self.df["datetime"] <= endDate)
+            (self.df["datetime"] >= startDate) & (self.df["datetime"] < endDate)
         ].sort_values("datetime", ascending=False)
 
     def get_scrobbles_for(
@@ -323,7 +329,7 @@ class LastCharts:
         startDate: str = None,
         endDate: str = None,
         length: int = 10,
-        f_periods: int = 20,
+        f_periods: int = 15,
         format: str = "gif",
         skip_empty_dates: bool = False,
         **bcr_options,
@@ -388,7 +394,7 @@ class LastCharts:
             "df": df_bcr,
             "filename": os.path.join(self.OUTPUT_dir, filename),
             "n_bars": 10,
-            "steps_per_period": 2,
+            "steps_per_period": 4,
             "period_length": int(
                 length / len(dates) * 1000
             ),  # period length is in miliseconds
@@ -435,11 +441,15 @@ class LastCharts:
 
         return df_bcr
 
-    def _get_cover(self, artist, album, force=0):
+    def _get_cover(self, artist: str, album: str = None, force=0):
         """Finds the cover for an album, saves it to db/covers as png. Returns image and dominant color as rgb."""
 
         if not os.path.exists(self.COVER_dir):
             os.makedirs(self.COVER_dir)
+
+        # If album not provided, use most played album
+        if not album:
+            album = self.df[self.df["artist"] == artist].album.mode().iloc[0]
 
         filename_base = utils.valid_filename(
             f"{artist}_{album}"
@@ -493,7 +503,7 @@ class LastCharts:
 
 def main():
     with open(
-        os.path.join(os.path.dirname(__file__), "..", "config", "config.json5")
+        os.path.join(os.path.dirname(__file__), "..", "..", "config", "config.json5")
     ) as f:
         priv = pyjson5.load(f)
 
