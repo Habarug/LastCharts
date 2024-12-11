@@ -409,6 +409,46 @@ class LastCharts:
 
         bcr.bar_chart_race(**bcr_arguments)
 
+    def plot_yearly_discoveries(self):
+        cols = ["artist", "album", "track"]
+
+        years = self.df.datetime.dt.year.sort_values().unique()
+
+        data = {}
+
+        discovered = {}
+
+        for year in years:
+            filter_year = self.df[self.df.datetime.dt.year == year]
+
+            for idc, col in enumerate(cols):
+                if col not in data:
+                    data[col] = {}
+                    data[col]["tot"] = []
+                    data[col]["new"] = []
+                if col not in discovered:
+                    discovered[col] = pd.DataFrame(columns=cols[: idc + 1])
+
+                filter_col = filter_year.loc[:, cols[: idc + 1]]
+                unique = filter_col.drop_duplicates()
+
+                df_all = unique.merge(discovered[col], how="left", indicator=True)
+                new = df_all[df_all["_merge"] == "left_only"].drop("_merge", axis=1)
+
+                discovered[col] = pd.concat((discovered[col], new))
+                data[col]["tot"].append(len(unique))
+                data[col]["new"].append(len(new))
+
+        fig, axs = plt.subplots(1, len(cols))
+        for col, ax in zip(cols, axs):
+            ax.plot(years, data[col]["tot"], label="Unique albums per year")
+            ax.plot(years, data[col]["new"], label="New albums discovered")
+
+            ax.legend()
+            ax.set_title(col)
+            ax.set_ylim([0, None])
+            ax.grid()
+
     def _format_df_for_bcr(
         self, df: pd.DataFrame, column: str, dates: list, n: int = None
     ):
