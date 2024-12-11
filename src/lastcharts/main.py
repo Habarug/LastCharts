@@ -441,8 +441,8 @@ class LastCharts:
 
         fig, axs = plt.subplots(1, len(cols))
         for col, ax in zip(cols, axs):
-            ax.plot(years, data[col]["tot"], label="Unique albums per year")
-            ax.plot(years, data[col]["new"], label="New albums discovered")
+            ax.plot(years, data[col]["tot"], label=f"Unique {col}s per year")
+            ax.plot(years, data[col]["new"], label=f"New {col}s discovered")
 
             ax.legend()
             ax.set_title(col)
