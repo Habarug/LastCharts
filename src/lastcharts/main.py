@@ -426,18 +426,31 @@ class LastCharts:
                     data[col] = {}
                     data[col]["tot"] = []
                     data[col]["new"] = []
+                    data[col]["percent_new"] = []
                 if col not in discovered:
                     discovered[col] = pd.DataFrame(columns=cols[: idc + 1])
 
                 filter_col = filter_year.loc[:, cols[: idc + 1]]
                 unique = filter_col.drop_duplicates()
 
-                df_all = unique.merge(discovered[col], how="left", indicator=True)
-                new = df_all[df_all["_merge"] == "left_only"].drop("_merge", axis=1)
+                df_merged_unique = unique.merge(
+                    discovered[col], how="left", indicator=True
+                )
+                new = df_merged_unique[df_merged_unique["_merge"] == "left_only"].drop(
+                    "_merge", axis=1
+                )
+
+                df_merged = filter_col.merge(
+                    discovered[col], how="left", indicator=True
+                )
+                new_plays = df_merged[df_merged["_merge"] == "left_only"].drop(
+                    "_merge", axis=1
+                )
 
                 discovered[col] = pd.concat((discovered[col], new))
                 data[col]["tot"].append(len(unique))
                 data[col]["new"].append(len(new))
+                data[col]["percent_new"].append(100 * len(new_plays) / len(filter_col))
 
         fig, axs = plt.subplots(1, len(cols))
         for col, ax in zip(cols, axs):
@@ -448,6 +461,18 @@ class LastCharts:
             ax.set_title(col)
             ax.set_ylim([0, None])
             ax.grid()
+
+            ax2 = ax.twinx()
+            ax2.plot(
+                years,
+                data[col]["percent_new"],
+                label=f"New {col}s discovered",
+                color="black",
+                linestyle="--",
+            )
+
+        ax2.set_ylabel(f"Percent of plays from new [%]")
+        axs[0].set_ylabel("Number of unique")
 
     def _format_df_for_bcr(
         self, df: pd.DataFrame, column: str, dates: list, n: int = None
