@@ -12,6 +12,16 @@ class LastFM:
     URL_base = "http://ws.audioscrobbler.com/2.0/"
     DB_dir = os.path.join(os.path.dirname(__file__), "..", "..", "db", "scrobbles")
     df_cols = ["artist", "album", "track", "datetime", "image"]
+    album_cols = [
+        "artist",
+        "album",
+        "tags",
+        "listeners",
+        "playcount",
+        "tracks",
+        "image",
+        "mbid",
+    ]
 
     def __init__(self, API_key, USER_AGENT) -> None:
         self.headers = {"user-agent": USER_AGENT}
@@ -29,11 +39,28 @@ class LastFM:
             Dataframe with columns : artist (str), album (str), releasedata (datetime), image, listeners, playcount, toptag
         """
 
-        r = self._lastfm_get(
+        response = self._lastfm_get(
             {"method": "album.getInfo", "artist": artist, "album": album}
         )
 
-        return r
+        return response
+
+    def _parse_albuminfo(self, response):
+        df = pd.DataFrame(columns=self.album_cols)
+
+        r = response.json()["album"]
+        df["artist"] = r["artist"]
+        df["album"] = r["name"]
+        # df["releasedate"] = pd.to_datetime(r["wiki"]["published"], format="%d %b %Y, %H:%M", utc=True)
+        # df["tags"] = df["tags"].astype("object")
+        # df.at[1, "tags"] = [[row["name"] for row in r["tags"]["tag"]]]
+        df["listeners"] = r["listeners"]
+        df["playcount"] = r["playcount"]
+        df["tracks"] = r["tracks"]
+        df["image"] = r["image"][-1]["#text"]
+        df["mbid"] = r["mbid"]
+
+        return df
 
     def _lastfm_get(self, payload):
         payload = self.payload_base | payload
