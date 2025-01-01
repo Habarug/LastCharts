@@ -498,7 +498,7 @@ class LastCharts:
         Args:
             df: Dataframe used for plotting
         """
-        return f"{df["datetime"].iloc[-1].strftime("%Y-%m-%d")} - {df["datetime"].iloc[0].strftime("%Y-%m-%d")}"
+        return f"{df['datetime'].iloc[-1].strftime('%Y-%m-%d')} - {df['datetime'].iloc[0].strftime('%Y-%m-%d')}"
 
 
 def main():
