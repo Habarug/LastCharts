@@ -72,7 +72,7 @@ lc.bar_chart_race(
     startDate           = None,     # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
     endDate             = None,     # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
     length              = 10,       # Length of the resulting video in seconds
-    f_period            = 15,       # Number of dates to plot per second
+    f_periods           = 15,       # Number of dates to plot per second
     format              = "gif",    # Format to save, gif, mp4,...
     skip_empty_dates    = False,    # Option to skip dates with no scrobbles           
     **{"steps_per_period" : 4,      # Number of frames per period
