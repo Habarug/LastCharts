@@ -17,6 +17,7 @@ from thefuzz import process
 from . import utils
 from .lastfm import LastFM
 
+DEFAULT_FONT = "Comfortaa"
 
 class LastCharts:
     """Python class to plot charts from LastFM data"""
@@ -31,10 +32,10 @@ class LastCharts:
     _FONT_SIZE_LEGEND = 18
     _FIG_SIZE_STACKEDBARS = (15, 7)
     _FIG_SIZE_BCR = (6, 3.5)
-    _FONT = "Comfortaa"
+    _FONT = DEFAULT_FONT
     _CMAP = "Set2"
 
-    def __init__(self, API_KEY, USER_AGENT):
+    def __init__(self, API_KEY, USER_AGENT, font = DEFAULT_FONT):
         """Instiantiate LastCharts class
 
         Args:
@@ -53,11 +54,12 @@ class LastCharts:
         self.df = None
 
         # Configure matplotlib for stacked bar plot
+        self._FONT = font
         plt.rcParams["figure.figsize"] = self._FIG_SIZE_STACKEDBARS
         if self._FONT in font_manager.fontManager.get_font_names():
             plt.rcParams["font.family"] = self._FONT
         else:
-            print(f"Font {self._FONT} not installed, using default font.")
+            print(f"Font {self._FONT} not installed, using fallback font.")
         plt.rcParams["axes.prop_cycle"] = cycler(color=plt.get_cmap(self._CMAP).colors)
 
     def load_scrobbles(self, user: str = None):
@@ -498,7 +500,7 @@ class LastCharts:
         Args:
             df: Dataframe used for plotting
         """
-        return f"{df["datetime"].iloc[-1].strftime("%Y-%m-%d")} - {df["datetime"].iloc[0].strftime("%Y-%m-%d")}"
+        return f"{df['datetime'].iloc[-1].strftime('%Y-%m-%d')} - {df['datetime'].iloc[0].strftime('%Y-%m-%d')}"
 
 
 def main():
