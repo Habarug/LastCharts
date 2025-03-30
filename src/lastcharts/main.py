@@ -19,6 +19,7 @@ from .lastfm import LastFM
 
 DEFAULT_FONT = "Comfortaa"
 
+
 class LastCharts:
     """Python class to plot charts from LastFM data"""
 
@@ -35,7 +36,7 @@ class LastCharts:
     _FONT = DEFAULT_FONT
     _CMAP = "Set2"
 
-    def __init__(self, API_KEY, USER_AGENT, font = DEFAULT_FONT):
+    def __init__(self, API_KEY, USER_AGENT, font=DEFAULT_FONT):
         """Instiantiate LastCharts class
 
         Args:
