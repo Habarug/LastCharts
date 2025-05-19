@@ -464,12 +464,13 @@ class LastCharts:
 
             ax2 = ax.twinx()
             ax2.plot(
-                years,
-                data[col]["percent_new"],
+                years[1:],
+                data[col]["percent_new"][1:],
                 label=f"New {col}s discovered",
                 color="black",
                 linestyle="--",
             )
+            ax2.set_ylim([0, 100])
 
         ax2.set_ylabel(f"Percent of plays from new [%]")
         axs[0].set_ylabel("Number of unique")
