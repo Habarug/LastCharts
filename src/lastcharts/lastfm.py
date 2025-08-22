@@ -1,9 +1,11 @@
 import os
+import re
 import time
 from datetime import timedelta
 
 import pandas as pd
 import requests
+from thefuzz import process
 
 
 class LastFM:
@@ -168,8 +170,33 @@ class LastFM:
                 df = df_new
 
         df.drop_duplicates()
+
+        df = self.check_artist_spellings(df)
+
         df.to_csv(path, index=False)
 
         print("Scrobbles loaded")
+
+        return df
+
+    def check_artist_spellings(self, df):
+        """Check if different spellings of artists exist"""
+
+        regex = re.compile("^a-zA-Z")
+        artists = set(df["artist"])
+
+        for artist in artists:
+            spellings = [
+                art
+                for art in artists
+                if regex.sub("", art).lower() == regex.sub("", artist).lower()
+            ]
+            if len(spellings) > 1:
+                ns = {spelling: sum(df.artist == spelling) for spelling in spellings}
+                n_max = max(ns)
+                for n in ns:
+                    if n != n_max:
+                        df["artist"] = df["artist"].replace(n, n_max, inplace=False)
+                        print(f"Changed artist spelling {n} to {n_max}")
 
         return df
