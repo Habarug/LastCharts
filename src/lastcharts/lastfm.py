@@ -72,7 +72,7 @@ class LastFM:
 
         while page <= total_pages:
             if page > 1:
-                print(f"Requesting page {page}/{total_pages}")
+                print(f"Requesting page {page}/{total_pages}", end="\r")
 
             response = self._get_recent_tracks(
                 user=user, page=page, limit=200, start=start
@@ -170,7 +170,9 @@ class LastFM:
                 df = df_new
 
         df.drop_duplicates()
+
         df = self.check_artist_spellings(df)
+
         df.to_csv(path, index=False)
 
         print("Scrobbles loaded")
