@@ -20,23 +20,6 @@ class LastFM:
 
         self.payload_base = {"api_key": API_key, "format": "json"}
 
-    def get_album_info(self, artist: str, album: str):
-        """Get info on a specific album, return Dataframe
-
-        Args:
-            artist  : Artist
-            album   : Album
-
-        Return:
-            Dataframe with columns : artist (str), album (str), releasedata (datetime), image, listeners, playcount, toptag
-        """
-
-        r = self._lastfm_get(
-            {"method": "album.getInfo", "artist": artist, "album": album}
-        )
-
-        return r
-
     def _lastfm_get(self, payload):
         payload = self.payload_base | payload
 
