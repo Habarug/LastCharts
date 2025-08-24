@@ -40,7 +40,7 @@ lc = lastcharts.LastCharts(YOUR API KEY, YOUR USERNAME)
 lc.load_scrobbles(user = ENTER USERNAME)
 ```
 - If no username is provided it will use your username. 
-- Go grab a snack. The first time you run this for a user it may run for a very long time, depending on how long the users history is. You can only load 200 scrobbles at a time from LastFM, and the API is heavily rate limited. The next time you run this command only new scrobbles will be downloaded, and it will be much faster. 
+- Go grab a snack. The first time you run this for a user it may run for a very long time, depending on how long the users history is. You can only load 200 scrobbles at a time from LastFM, and the API is heavily rate limited. The next time you run this command only new scrobbles will be downloaded, and it will be much faster. Being able to only download new scrobbles each time was one of my main motivations when starting this. 
 
 ### Plot stacked bar plot
 Once the scrobbles are loaded you can start plotting. The first time you plot a stacked bar plot album covers are downloaded to your computer, so it may take a little while to run the first time. 
