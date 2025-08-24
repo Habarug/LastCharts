@@ -2,14 +2,7 @@
 
 Python package to plot charts from a user's LastFM data. LastCharts downloads a users entire listing history using the [LastFM Rest API](https://www.last.fm/api/rest), and includes methods to create pre-defined charts. 
 
-### Implemented charts:
-- Bar chart race:
-
 ![bcr](./figures/Example_BCR_artist.gif)
-
-- Stacked bar plot of top artists with album distribution:
-
-![bcr](./figures/Example_topArtists_stackedbars.jpg)
 
 ## Pre-requisites
 
@@ -50,10 +43,10 @@ lc.load_scrobbles(user = ENTER USERNAME)
 - Go grab a snack. The first time you run this for a user it may run for a very long time, depending on how long the users history is. You can only load 200 scrobbles at a time from LastFM, and the API is heavily rate limited. The next time you run this command only new scrobbles will be downloaded, and it will be much faster. 
 
 ### Plot stacked bar plot
-
 Once the scrobbles are loaded you can start plotting. The first time you plot a stacked bar plot album covers are downloaded to your computer, so it may take a little while to run the first time. 
+
 ```python
-lc.stacked_bar_plot(
+fig, ax = lc.stacked_bar_plot(
     startDate           = None, # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
     endDate             = None, # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
     nArtists            = 15,   # Change how many artists are included
@@ -61,9 +54,9 @@ lc.stacked_bar_plot(
                                 # 0.05 => only albums with at least 5% of the highest bar will get a cover art
 )
 ```
+![bcr](./figures/Example_topArtists_stackedbars.jpg)
 
 ### Plot bar chart race
-
 This is very cool, but quite slow and memory intensive, so you may have to tweak the parameters a bit to get the results you want. The dates are filtered before plotting if the history is long, as it otherwise made me run out of memory. Adjust length, f_period and **{steps_per_period} to find your ideal tradeoff between length, smoothness and performance. For more information on ```**bcr_options``` check the [bar_chart_race documentation](https://github.com/dexplo/bar_chart_race).
 
 ```python
@@ -82,21 +75,59 @@ lc.bar_chart_race(
 )
 ```
 
+![bcr](./figures/Example_BCR_artist.gif)
+
+### Plot rank timeline (what is a better name for this?)
+Similar information to the bar chart race, but in image form! Not as exciting, but honestly this is more informative.
+
+```python
+fig, ax = lc.plot_rank_timeline(
+    column="artist",    # Can select artist, album or track
+    nTimesteps=10,      # Number of timesteps to use (often looks messy with too many)
+    nPlot=10,           # Number of e.g. artists to show at once.
+    nInclude=200,       # Number of your top e.g. artists to include in the analysis
+    startDate=None,     # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
+    endDate=None,       # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
+)
+```
+
+![ranktimeline](./figures/Example_ranktimeline.png)
+
+
+### Plot yearly discoveries/unqiue artists/albums/tracks
+Presents how many unique artists/albums/tracks you have listened to each year, as well as how many new were discovered and what fraction of scrobbles were from new discoveries.
+
+```python
+fig, ax = lc.plot_yearly_discoveries()
+```
+
+![yearly](./figures/Example_YearlyDiscoveries.png)
+
 ### Plot top artists/album/tracks
 Bar plot of top artists, album or tracks, with optional time filtering.
 
 ```python
 lc.plot_top(
-    column      = "artist", # Artist, album or track
+    column      = "album", # Artist, album or track
     nBars       = 15,       # Number of bars to plot
     startDate   = None,     # Optional start date for plot, format ISO 8601 (YYYY-MM-DD)
     endDate     = None      # Optional end date for plot, format ISO 8601 (YYYY-MM-DD)
 )
 ```
 
-## Plans
+![top](./figures/Example_PlotTop.png)
 
-- Fix formatting of longer artist/album names
-- Consider adding a way to estimate how long it will take to generate bar chart race based on length, f_period, steps_per_period and dpi. Can save a number to use for estimates to config/config.json5
-- Maybe add cover art to bar chart race labels
-- Maybe add more charts if I get any good ideas
+### Get number of scrobbles for a given query
+
+Simple method for getting the exact number of scrobbles an artist/album/track, optionally for a specific timeframe. Note: Doesn't actually work particularly well for tracks, and potentially albums, because it won't differentiate between tracks by different artists with the same name.
+
+```
+lc.get_scrobbles_for(
+    query = "Carry On",
+    column = "track",
+    startDate = None,
+    endDate = None
+)
+
+Number of scrobbles for Grace Kelly: 14
+```

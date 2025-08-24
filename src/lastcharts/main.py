@@ -418,20 +418,29 @@ class LastCharts:
     def plot_rank_timeline(
         self,
         column="artist",
-        n=10,
+        nTimesteps=10,
         nPlot=10,
         nInclude=200,
         startDate=None,
         endDate=None,
     ):
+        """Plot how your top artists/albums/tracks have changed over time
+
+        Args:
+            column: artist/album/track
+            nTimesteps: Number of timesteps to use
+            nPlot: Number of e.g. artists to show at once
+            nInclude:   Number of e.g. artists that will be included in the analysis.
+                        If an artist outside of your nInclude was ever top nPlot, they will be missing.
+            startDate: Optional start date
+            endDate: Optional end date
+        """
         # Check inputs
         if column not in ["artist", "album", "track"]:
             raise ValueError(f"Requested column {column} not artist, album or track")
 
         if not os.path.exists(self.OUTPUT_dir):
             os.mkdir(self.OUTPUT_dir)
-
-        filename = f"{self.user}_BCR_{column}.{format}"
 
         df = self.filter_df(self.df, startDate, endDate)
 
@@ -443,13 +452,13 @@ class LastCharts:
 
         # Make sure to get last date included, first not that important
         # Create it backwards and reverse it afterwards, makes sure we include last date
-        if len(dates) > n:
-            step = math.floor(len(dates) / n)  # index step
+        if len(dates) > nTimesteps:
+            step = math.floor(len(dates) / nTimesteps)  # index step
 
             # Only perform date filtering if it is significant enough, otherwise might as well include every data point
             if step >= 5:
                 dates_tmp = []
-                for idx in range(n):
+                for idx in range(nTimesteps):
                     dates_tmp.append(dates[-1 - idx * step])
 
                 dates_tmp.reverse()
