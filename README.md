@@ -119,15 +119,26 @@ lc.plot_top(
 
 ### Get number of scrobbles for a given query
 
-Simple method for getting the exact number of scrobbles an artist/album/track, optionally for a specific timeframe. Note: Doesn't actually work particularly well for tracks, and potentially albums, because it won't differentiate between tracks by different artists with the same name.
+Simple method for getting the exact number of scrobbles an artist/album/track, optionally for a specific timeframe. Can provide any combination of artist/album/track. For artist only one is required, but if you want to find the scrobbles for a specific track it might be a good idea to also provide the artist. Example
 
 ```
 lc.get_scrobbles_for(
-    query = "Carry On",
-    column = "track",
+    artist = None,
+    album = None, 
+    track = "Shotgun",
     startDate = None,
     endDate = None
 )
 
-Number of scrobbles for Grace Kelly: 14
+Number of scrobbles for Shotgun: 126
+
+lc.get_scrobbles_for(
+    artist = "Soccer Mommy",
+    album = None, 
+    track = "Shotgun",
+    startDate = None,
+    endDate = None
+)
+
+Number of scrobbles for Soccer Mommy Shotgun: 44
 ```

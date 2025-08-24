@@ -119,8 +119,9 @@ class LastCharts:
 
     def get_scrobbles_for(
         self,
-        query: str,
-        column: str = "artist",
+        artist: str = None,
+        album: str = None,
+        track: str = None,
         startDate: str = None,
         endDate: str = None,
     ):
@@ -133,23 +134,41 @@ class LastCharts:
             endDate     : Optional end date
         """
 
-        if column not in ["artist", "album", "track"]:
-            raise ValueError("Column input has to be artist, album or track.")
-
         # Optional filtering of scrobbles
         df = self.filter_df(self.df, startDate, endDate)
 
+        outString = "Number of scrobbles for"
+        if artist:
+            artist = self._get_match("artist", artist)
+            if artist:
+                df = df[df["artist"] == artist]
+                outString += f" {artist}"
+
+        if album:
+            album = self._get_match("album", album)
+            if album:
+                df = df[df["album"] == album]
+                outString += f" {album}"
+
+        if track:
+            album = self._get_match("track", track)
+            if track:
+                df = df[df["track"] == track]
+                outString += f" {track}"
+
+        nScrobbles = len(df)
+        outString += f": {nScrobbles}"
+
+        print(outString)
+        return nScrobbles
+
+    def _get_match(self, column: str, query: str):
         querymatch = process.extractOne(query, set(self.df[column]))
         if querymatch[1] < 80:
             print(f"No good match found for {query}, did you mean: {querymatch[0]}?")
             return
         else:
-            query = querymatch[0]
-
-        nScrobbles = sum(df[column] == query)
-
-        print(f"Number of scrobbles for {query}: {nScrobbles}")
-        return nScrobbles
+            return querymatch[0]
 
     def plot_top(
         self,
