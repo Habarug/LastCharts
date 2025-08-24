@@ -572,6 +572,7 @@ class LastCharts:
 
         ax2.set_ylabel(f"Percent of plays from new [%]")
         axs[0].set_ylabel("Number of unique")
+        return fig, ax
 
     def _filter_topX(self, column: str, n: int) -> pd.DataFrame:
         """Filter df to only include scrobbles for top n of type column
