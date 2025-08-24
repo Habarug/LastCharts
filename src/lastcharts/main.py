@@ -460,10 +460,19 @@ class LastCharts:
         df_rank = df_bcr.rank(1, ascending=False, method="first")
 
         fig, ax = plt.subplots()
-
-        ax.plot(df_rank)
-
         cycle = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        for i, col in enumerate(df_rank.columns):
+            if i / len(cycle) < 1:
+                ls = "-"
+            elif i / len(cycle) < 2:
+                ls = "--"
+            elif i / len(cycle) < 3:
+                ls = ":"
+            elif i / len(cycle) < 4:
+                ls = "-."
+            ax.plot(df_rank[col], ls=ls)
+
         for i, col in enumerate(df_rank.columns):
             a = df_rank[df_rank[col] <= nPlot][col]
             if len(a):
