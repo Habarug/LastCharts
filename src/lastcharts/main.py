@@ -471,6 +471,8 @@ class LastCharts:
                 ls = ":"
             elif i / len(cycle) < 4:
                 ls = "-."
+            else:
+                ls = "-"
             ax.plot(df_rank[col], ls=ls)
 
         for i, col in enumerate(df_rank.columns):
