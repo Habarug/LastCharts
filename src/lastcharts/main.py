@@ -478,6 +478,16 @@ class LastCharts:
         ax2.set_ylabel(f"Percent of plays from new [%]")
         axs[0].set_ylabel("Number of unique")
 
+    def _filter_topX(self, column: str, n: int) -> pd.DataFrame:
+        """Filter df to only include scrobbles for top n of type column
+
+        Args:
+            column: Artist/album/track
+            n: Number of top to include
+        """
+        top = self.df[column].value_counts()[:n].index.tolist()
+        return self.df[self.df[column].isin(top)]
+
     def _format_df_for_bcr(
         self, df: pd.DataFrame, column: str, dates: list, n: int = None
     ):
