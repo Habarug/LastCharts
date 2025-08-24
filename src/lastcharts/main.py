@@ -2,6 +2,7 @@ import math
 import os
 import urllib
 from datetime import timedelta
+import warnings
 
 import bar_chart_race as bcr
 import matplotlib.font_manager as font_manager
@@ -16,6 +17,8 @@ from thefuzz import process
 
 from . import utils
 from .lastfm import LastFM
+
+warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 DEFAULT_FONT = "Comfortaa"
 
@@ -116,8 +119,9 @@ class LastCharts:
 
     def get_scrobbles_for(
         self,
-        query: str,
-        column: str = "artist",
+        artist: str = None,
+        album: str = None,
+        track: str = None,
         startDate: str = None,
         endDate: str = None,
     ):
@@ -130,23 +134,41 @@ class LastCharts:
             endDate     : Optional end date
         """
 
-        if column not in ["artist", "album", "track"]:
-            raise ValueError("Column input has to be artist, album or track.")
-
         # Optional filtering of scrobbles
         df = self.filter_df(self.df, startDate, endDate)
 
+        outString = "Number of scrobbles for"
+        if artist:
+            artist = self._get_match("artist", artist)
+            if artist:
+                df = df[df["artist"] == artist]
+                outString += f" {artist}"
+
+        if album:
+            album = self._get_match("album", album)
+            if album:
+                df = df[df["album"] == album]
+                outString += f" {album}"
+
+        if track:
+            album = self._get_match("track", track)
+            if track:
+                df = df[df["track"] == track]
+                outString += f" {track}"
+
+        nScrobbles = len(df)
+        outString += f": {nScrobbles}"
+
+        print(outString)
+        return nScrobbles
+
+    def _get_match(self, column: str, query: str):
         querymatch = process.extractOne(query, set(self.df[column]))
         if querymatch[1] < 80:
             print(f"No good match found for {query}, did you mean: {querymatch[0]}?")
             return
         else:
-            query = querymatch[0]
-
-        nScrobbles = sum(df[column] == query)
-
-        print(f"Number of scrobbles for {query}: {nScrobbles}")
-        return nScrobbles
+            return querymatch[0]
 
     def plot_top(
         self,
@@ -391,7 +413,7 @@ class LastCharts:
                 dates = dates_tmp
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(df, column, dates, n=200)
+        df_bcr = self._format_df_for_bcr(df, column, dates, n=10)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
@@ -411,6 +433,107 @@ class LastCharts:
         bcr_arguments.update(**bcr_options)  # Add or replace defaults with user options
 
         bcr.bar_chart_race(**bcr_arguments)
+
+    def plot_rank_timeline(
+        self,
+        column="artist",
+        nTimesteps=10,
+        nPlot=10,
+        nInclude=200,
+        startDate=None,
+        endDate=None,
+    ):
+        """Plot how your top artists/albums/tracks have changed over time
+
+        Args:
+            column: artist/album/track
+            nTimesteps: Number of timesteps to use
+            nPlot: Number of e.g. artists to show at once
+            nInclude:   Number of e.g. artists that will be included in the analysis.
+                        If an artist outside of your nInclude was ever top nPlot, they will be missing.
+            startDate: Optional start date
+            endDate: Optional end date
+        """
+        # Check inputs
+        if column not in ["artist", "album", "track"]:
+            raise ValueError(f"Requested column {column} not artist, album or track")
+
+        if not os.path.exists(self.OUTPUT_dir):
+            os.mkdir(self.OUTPUT_dir)
+
+        df = self.filter_df(self.df, startDate, endDate)
+
+        dates = pd.date_range(
+            df["datetime"].iloc[-1],
+            df["datetime"].iloc[0],
+            freq="d",
+        )
+
+        # Make sure to get last date included, first not that important
+        # Create it backwards and reverse it afterwards, makes sure we include last date
+        if len(dates) > nTimesteps:
+            step = math.floor(len(dates) / nTimesteps)  # index step
+
+            # Only perform date filtering if it is significant enough, otherwise might as well include every data point
+            if step >= 5:
+                dates_tmp = []
+                for idx in range(nTimesteps):
+                    dates_tmp.append(dates[-1 - idx * step])
+
+                dates_tmp.reverse()
+                dates = dates_tmp
+
+        # Make a new df with correct formatting for bcr:
+        df_bcr = self._format_df_for_bcr(df, column, dates, n=nPlot)
+        df_rank = df_bcr.rank(1, ascending=False, method="first")
+
+        fig, ax = plt.subplots()
+        cycle = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        for i, col in enumerate(df_rank.columns):
+            if i / len(cycle) < 1:
+                ls = "-"
+            elif i / len(cycle) < 2:
+                ls = "--"
+            elif i / len(cycle) < 3:
+                ls = ":"
+            elif i / len(cycle) < 4:
+                ls = "-."
+            else:
+                ls = "-"
+            ax.plot(df_rank[col], ls=ls)
+
+        for i, col in enumerate(df_rank.columns):
+            a = df_rank[df_rank[col] <= nPlot][col]
+            if len(a):
+                if a.index[-1] == df_rank.index[-1]:
+                    fs = 10
+                    ha = "left"
+                    va = "baseline"
+                    txt = col
+                else:
+                    fs = 8
+                    ha = "center"
+                    va = "center"
+                    txt = col.replace(" ", "\n")
+                ax.text(
+                    a.index[-1],
+                    a.iloc[-1] - 0.1,
+                    txt,
+                    fontsize=fs,
+                    weight="bold",
+                    ha=ha,
+                    va=va,
+                    bbox={"color": "white", "alpha": 0.8},
+                    color=cycle[i % len(cycle)],
+                )
+
+        ax.set_ylim([nPlot + 0.5, 0.5])
+        ax.set_yticks(range(1, nPlot + 1))
+        ax.set_ylabel("Rank")
+
+        fig.set_size_inches(10, 6)
+        return fig, ax
 
     def plot_yearly_discoveries(self):
         cols = ["artist", "album", "track"]
@@ -477,9 +600,25 @@ class LastCharts:
 
         ax2.set_ylabel(f"Percent of plays from new [%]")
         axs[0].set_ylabel("Number of unique")
+        return fig, ax
+
+    def _filter_topX(self, column: str, n: int) -> pd.DataFrame:
+        """Filter df to only include scrobbles for top n of type column
+
+        Args:
+            column: Artist/album/track
+            n: Number of top to include
+        """
+        top = self.df[column].value_counts()[:n].index.tolist()
+        return self.df[self.df[column].isin(top)]
 
     def _format_df_for_bcr(
-        self, df: pd.DataFrame, column: str, dates: list, n: int = None
+        self,
+        df: pd.DataFrame,
+        column: str,
+        dates: list,
+        n: int = None,
+        nInclude=200,
     ):
         """Returns a df formatted for bar chart race
 
@@ -487,26 +626,32 @@ class LastCharts:
             df      : Dataframe with scrobbles with at least the column specified below
             column  : Column to count (artist, album, track)
             dates   : List of dates to use
-            n       : Number of output columns. Setting it low may mean cause some inaccuracies early in the bcr.
+            n       : Values that have never been top n will be dropped
+            nInclude: Only include nInclude in analysis
         """
         max_label_length = 17
 
         topList = df[column].value_counts()[:].index.tolist()
-        df_bcr = pd.DataFrame(
-            index=dates,
-            columns=[
-                entry[0:max_label_length] for entry in topList[:n]
-            ],  # Set max length to 18 for now to avoid label cutoff
-        )
+        df_bcr = pd.DataFrame()
 
-        if n is None or n > len(topList):
-            n = len(topList)
-        for entry in topList[:n]:
+        if nInclude is None or n > len(topList):
+            nInclude = len(topList)
+        for entry in topList[:nInclude]:
             df_filtered = df[df[column] == entry]
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
             df_bcr[entry[0:max_label_length]] = cumSum
+
+        # Delete columns that have never been top n
+        df_rank = df_bcr.rank(1, ascending=False, method="first")
+        drop = []
+        for col in df_rank.columns:
+            if min(df_rank[col]) >= n:
+                drop.append(col)
+        df_bcr = df_bcr.drop(drop, axis=1)
+
+        df_bcr.index = dates
 
         return df_bcr
 
