@@ -2,6 +2,7 @@ import math
 import os
 import urllib
 from datetime import timedelta
+import warnings
 
 import bar_chart_race as bcr
 import matplotlib.font_manager as font_manager
@@ -16,6 +17,8 @@ from thefuzz import process
 
 from . import utils
 from .lastfm import LastFM
+
+warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 DEFAULT_FONT = "Comfortaa"
 
@@ -391,7 +394,7 @@ class LastCharts:
                 dates = dates_tmp
 
         # Make a new df with correct formatting for bcr:
-        df_bcr = self._format_df_for_bcr(df, column, dates, n=200)
+        df_bcr = self._format_df_for_bcr(df, column, dates, n=10)
 
         bcr_arguments = {  # Default iptions for bar chart race
             "df": df_bcr,
@@ -489,7 +492,12 @@ class LastCharts:
         return self.df[self.df[column].isin(top)]
 
     def _format_df_for_bcr(
-        self, df: pd.DataFrame, column: str, dates: list, n: int = None
+        self,
+        df: pd.DataFrame,
+        column: str,
+        dates: list,
+        n: int = None,
+        nInclude=200,
     ):
         """Returns a df formatted for bar chart race
 
@@ -497,26 +505,32 @@ class LastCharts:
             df      : Dataframe with scrobbles with at least the column specified below
             column  : Column to count (artist, album, track)
             dates   : List of dates to use
-            n       : Number of output columns. Setting it low may mean cause some inaccuracies early in the bcr.
+            n       : Values that have never been top n will be dropped
+            nInclude: Only include nInclude in analysis
         """
         max_label_length = 17
 
         topList = df[column].value_counts()[:].index.tolist()
-        df_bcr = pd.DataFrame(
-            index=dates,
-            columns=[
-                entry[0:max_label_length] for entry in topList[:n]
-            ],  # Set max length to 18 for now to avoid label cutoff
-        )
+        df_bcr = pd.DataFrame()
 
-        if n is None or n > len(topList):
-            n = len(topList)
-        for entry in topList[:n]:
+        if nInclude is None or n > len(topList):
+            nInclude = len(topList)
+        for entry in topList[:nInclude]:
             df_filtered = df[df[column] == entry]
             cumSum = []
             for date in dates:
                 cumSum.append(sum(df_filtered["datetime"] <= date))
             df_bcr[entry[0:max_label_length]] = cumSum
+
+        # Delete columns that have never been top n
+        df_rank = df_bcr.rank(1, ascending=False, method="first")
+        drop = []
+        for col in df_rank.columns:
+            if min(df_rank[col]) >= n:
+                drop.append(col)
+        df_bcr = df_bcr.drop(drop, axis=1)
+
+        df_bcr.index = dates
 
         return df_bcr
 
