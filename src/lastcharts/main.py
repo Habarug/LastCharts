@@ -415,6 +415,83 @@ class LastCharts:
 
         bcr.bar_chart_race(**bcr_arguments)
 
+    def plot_rank_timeline(
+        self,
+        column="artist",
+        n=10,
+        nPlot=10,
+        nInclude=200,
+        startDate=None,
+        endDate=None,
+    ):
+        # Check inputs
+        if column not in ["artist", "album", "track"]:
+            raise ValueError(f"Requested column {column} not artist, album or track")
+
+        if not os.path.exists(self.OUTPUT_dir):
+            os.mkdir(self.OUTPUT_dir)
+
+        filename = f"{self.user}_BCR_{column}.{format}"
+
+        df = self.filter_df(self.df, startDate, endDate)
+
+        dates = pd.date_range(
+            df["datetime"].iloc[-1],
+            df["datetime"].iloc[0],
+            freq="d",
+        )
+
+        # Make sure to get last date included, first not that important
+        # Create it backwards and reverse it afterwards, makes sure we include last date
+        if len(dates) > n:
+            step = math.floor(len(dates) / n)  # index step
+
+            # Only perform date filtering if it is significant enough, otherwise might as well include every data point
+            if step >= 5:
+                dates_tmp = []
+                for idx in range(n):
+                    dates_tmp.append(dates[-1 - idx * step])
+
+                dates_tmp.reverse()
+                dates = dates_tmp
+
+        # Make a new df with correct formatting for bcr:
+        df_bcr = self._format_df_for_bcr(df, column, dates, n=nPlot)
+        df_rank = df_bcr.rank(1, ascending=False, method="first")
+
+        fig, ax = plt.subplots()
+
+        ax.plot(df_rank)
+
+        cycle = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+        for i, col in enumerate(df_rank.columns):
+            a = df_rank[df_rank[col] <= nPlot][col]
+            if len(a):
+                if a.index[-1] == df_rank.index[-1]:
+                    fs = 10
+                    ha = "left"
+                else:
+                    fs = 8
+                    ha = "center"
+                ax.text(
+                    a.index[-1],
+                    a.iloc[-1] - 0.1,
+                    col,
+                    fontsize=fs,
+                    weight="bold",
+                    ha=ha,
+                    va="baseline",
+                    bbox={"color": "white", "alpha": 0.8},
+                    color=cycle[i % len(cycle)],
+                )
+
+        ax.set_ylim([nPlot + 0.5, 0.5])
+        ax.set_yticks(range(1, nPlot + 1))
+        ax.set_ylabel("Rank")
+
+        fig.set_size_inches(10, 6)
+        return fig, ax
+
     def plot_yearly_discoveries(self):
         cols = ["artist", "album", "track"]
 
