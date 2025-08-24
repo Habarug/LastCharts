@@ -470,17 +470,21 @@ class LastCharts:
                 if a.index[-1] == df_rank.index[-1]:
                     fs = 10
                     ha = "left"
+                    va = "baseline"
+                    txt = col
                 else:
                     fs = 8
                     ha = "center"
+                    va = "center"
+                    txt = col.replace(" ", "\n")
                 ax.text(
                     a.index[-1],
                     a.iloc[-1] - 0.1,
-                    col,
+                    txt,
                     fontsize=fs,
                     weight="bold",
                     ha=ha,
-                    va="baseline",
+                    va=va,
                     bbox={"color": "white", "alpha": 0.8},
                     color=cycle[i % len(cycle)],
                 )
