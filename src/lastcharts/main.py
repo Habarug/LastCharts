@@ -547,7 +547,11 @@ class LastCharts:
             raise ValueError("Column input has to be artist, album or track.")
 
         df = self.filter_df(self.df, startDate, endDate)
-        dates = df["datetime"].dt.date.unique()
+        dates = pd.date_range(
+            df["datetime"].iloc[-1],
+            df["datetime"].iloc[0],
+            freq="d",
+        )
         topList = df[column].value_counts()[:nPlot].index.tolist()
 
         fig, ax = plt.subplots()
@@ -555,7 +559,7 @@ class LastCharts:
             df_filtered = df[df[column] == match]
             daily = []
             for date in dates:
-                daily.append(sum(df_filtered["datetime"].dt.date == date))
+                daily.append(sum(df_filtered["datetime"].dt.date == date.date()))
 
             df_daily = pd.DataFrame(daily, index=dates)
 
