@@ -535,6 +535,45 @@ class LastCharts:
         fig.set_size_inches(10, 6)
         return fig, ax
 
+    def plot_movemean(
+        self,
+        column: str = "artist",
+        window: int = 180,
+        nPlot: int = 7,
+        startDate: str = None,
+        endDate: str = None,
+    ):
+        if column not in ["artist", "album", "track"]:
+            raise ValueError("Column input has to be artist, album or track.")
+
+        df = self.filter_df(self.df, startDate, endDate)
+        dates = df["datetime"].dt.date.unique()
+        topList = df[column].value_counts()[:nPlot].index.tolist()
+
+        fig, ax = plt.subplots()
+        for idm, match in enumerate(topList):
+            df_filtered = df[df[column] == match]
+            daily = []
+            for date in dates:
+                daily.append(sum(df_filtered["datetime"].dt.date == date))
+
+            df_daily = pd.DataFrame(daily, index=dates)
+
+            ax.plot(df_daily.rolling(window).mean(), label=match)
+
+        ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left")
+        ax.set_ylabel("Mean daily scrobbles", fontsize=13)
+        ax.set_title(f"Window length: {window} days", fontsize=13)
+        ax.xaxis.set_tick_params(rotation=45, labelsize=13)
+        ax.yaxis.set_tick_params(labelsize=13)
+        ax.grid()
+        ax.set_ylim([0, None])
+        ax.set_xlim(ax.get_xticks()[0], ax.get_xticks()[-1])
+
+        fig.set_size_inches(6, 3)
+
+        return fig, ax
+
     def plot_yearly_discoveries(self):
         cols = ["artist", "album", "track"]
 
