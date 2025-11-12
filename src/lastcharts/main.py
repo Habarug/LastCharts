@@ -1,15 +1,15 @@
 import math
 import os
 import urllib
-from datetime import timedelta
 import warnings
+from datetime import timedelta
 
 import bar_chart_race as bcr
 import matplotlib.font_manager as font_manager
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
-import pyjson5
+import yaml
 from colorthief import ColorThief
 from cycler import cycler
 from PIL import Image
@@ -717,9 +717,9 @@ class LastCharts:
 
 def main():
     with open(
-        os.path.join(os.path.dirname(__file__), "..", "..", "config", "config.json5")
+        os.path.join(os.path.dirname(__file__), "..", "..", "config", "config.yaml")
     ) as f:
-        priv = pyjson5.load(f)
+        priv = yaml.safe_load(f)
 
     return LastCharts(priv["API_KEY"], priv["USER"])
 
